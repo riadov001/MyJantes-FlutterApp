@@ -1280,7 +1280,7 @@ def main():
     print("✨ Interface web moderne et responsive disponible")
     print("🔧 API endpoints: /api/devis, /api/reservations, /api/factures")
     
-    with socketserver.TCPServer(("", port), MyJantesHandler) as httpd:
+    with socketserver.TCPServer(("", port), MyJantesServer) as httpd:
         print(f"📱 Serveur démarré: http://0.0.0.0:{port}")
         try:
             httpd.serve_forever()
