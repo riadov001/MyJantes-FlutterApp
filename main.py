@@ -214,6 +214,16 @@ class MyJantesServer(http.server.BaseHTTPRequestHandler):
             self.send_json_response(self.api.get_all_factures())
         elif self.path == '/logo':
             self.serve_logo()
+        elif self.path == '/renovation_jante.jpg':
+            self.serve_image('renovation_jante.jpg')
+        elif self.path == '/personnalisation_jante.webp':
+            self.serve_image('personnalisation_jante.webp')
+        elif self.path == '/devoilage_jante.jpg':
+            self.serve_image('devoilage_jante.jpg')
+        elif self.path == '/decapage_jante.webp':
+            self.serve_image('decapage_jante.webp')
+        elif self.path == '/hero_jante.webp':
+            self.serve_image('hero_jante.webp')
         elif self.path == '/':
             self.serve_main_page()
         else:
@@ -282,6 +292,25 @@ class MyJantesServer(http.server.BaseHTTPRequestHandler):
         except FileNotFoundError:
             self.send_404()
     
+    def serve_image(self, image_name):
+        """Serve images from the current directory"""
+        try:
+            with open(image_name, 'rb') as f:
+                image_data = f.read()
+                
+            self.send_response(200)
+            if image_name.endswith('.webp'):
+                self.send_header('Content-type', 'image/webp')
+            elif image_name.endswith('.jpg'):
+                self.send_header('Content-type', 'image/jpeg')
+            elif image_name.endswith('.png'):
+                self.send_header('Content-type', 'image/png')
+            self.send_header('Cache-Control', 'max-age=3600')
+            self.end_headers()
+            self.wfile.write(image_data)
+        except FileNotFoundError:
+            self.send_404()
+    
     def send_404(self):
         """Send 404 response"""
         self.send_response(404)
@@ -319,35 +348,35 @@ class MyJantesServer(http.server.BaseHTTPRequestHandler):
         }
         
         :root {
-            --primary-color: #DC2626;
-            --primary-dark: #B91C1C;
-            --primary-light: #FCA5A5;
-            --secondary-color: #374151;
-            --accent-color: #F59E0B;
-            --text-color: #111827;
-            --text-light: #6B7280;
-            --bg-color: #F9FAFB;
+            --primary-red: #DC2626;
+            --deep-red: #B91C1C;
+            --light-red: #FCA5A5;
+            --black: #000000;
+            --dark-gray: #1F1F1F;
+            --medium-gray: #333333;
+            --light-gray: #F5F5F5;
             --white: #FFFFFF;
-            --shadow: 0 10px 25px rgba(0,0,0,0.1);
-            --shadow-lg: 0 20px 40px rgba(0,0,0,0.15);
-            --border-radius: 12px;
-            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            --shadow: 0 8px 32px rgba(0,0,0,0.12);
+            --shadow-lg: 0 16px 64px rgba(0,0,0,0.2);
+            --border-radius: 16px;
+            --transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
         }
         
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            line-height: 1.7;
-            color: var(--text-color);
-            background: var(--bg-color);
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            line-height: 1.6;
+            color: var(--black);
+            background: var(--white);
             overflow-x: hidden;
         }
         
-        /* Navigation */
+        /* Navigation moderne avec design noir/rouge/blanc */
         .navbar {
-            background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
+            background: linear-gradient(135deg, var(--black) 0%, var(--dark-gray) 100%);
+            border-bottom: 3px solid var(--primary-red);
             color: var(--white);
             padding: 0;
-            box-shadow: var(--shadow);
+            box-shadow: var(--shadow-lg);
             position: sticky;
             top: 0;
             z-index: 1000;
@@ -359,67 +388,88 @@ class MyJantesServer(http.server.BaseHTTPRequestHandler):
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 1rem 2rem;
+            padding: 1.5rem 2rem;
         }
         
         .logo {
-            font-size: 2rem;
-            font-weight: 900;
-            letter-spacing: -1px;
             display: flex;
             align-items: center;
-            gap: 0.75rem;
+            gap: 1rem;
         }
         
         .logo img {
-            height: 45px;
+            height: 50px;
             width: auto;
-            max-width: 120px;
-            border-radius: 6px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
-            background: white;
-            padding: 2px;
+            background: var(--white);
+            padding: 8px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(220, 38, 38, 0.3);
         }
         
-        .nav-links {
+        .logo-text {
+            font-size: 1.8rem;
+            font-weight: 800;
+            color: var(--white);
+            letter-spacing: -0.5px;
+        }
+        
+        /* Menu principal symétrique et moderne */
+        .nav-menu {
             display: flex;
             list-style: none;
-            gap: 0;
+            gap: 2rem;
+            align-items: center;
         }
         
-        .nav-links a {
+        .nav-menu li {
+            position: relative;
+        }
+        
+        .nav-menu a {
             color: var(--white);
             text-decoration: none;
-            padding: 1rem 1.5rem;
-            border-radius: var(--border-radius);
+            font-weight: 600;
+            font-size: 1rem;
+            padding: 0.75rem 1.5rem;
+            border-radius: 12px;
             transition: var(--transition);
-            font-weight: 500;
-            position: relative;
-            overflow: hidden;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
         }
         
-        .nav-links a::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: rgba(255,255,255,0.1);
-            transition: var(--transition);
-        }
-        
-        .nav-links a:hover::before,
-        .nav-links a.active::before {
-            left: 0;
-        }
-        
-        .nav-links a:hover,
-        .nav-links a.active {
-            background: rgba(255,255,255,0.15);
+        .nav-menu a:hover {
+            background: var(--primary-red);
             transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(220, 38, 38, 0.4);
         }
         
+        .nav-menu a i {
+            font-size: 1.1rem;
+        }
+        
+        /* Contact info dans la nav */
+        .nav-contact {
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+            color: var(--white);
+        }
+        
+        .contact-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+        
+        .contact-item i {
+            color: var(--primary-red);
+            font-size: 1rem;
+        }
+        
+        /* Menu mobile hamburger moderne */
         .mobile-menu-btn {
             display: none;
             background: none;
@@ -427,82 +477,624 @@ class MyJantesServer(http.server.BaseHTTPRequestHandler):
             color: var(--white);
             font-size: 1.5rem;
             cursor: pointer;
+            padding: 0.5rem;
+            border-radius: 8px;
+            transition: var(--transition);
         }
         
-        /* Hero Section */
+        .mobile-menu-btn:hover {
+            background: var(--primary-red);
+        }
+        
+        /* Section Hero moderne avec image */
         .hero {
-            background: linear-gradient(135deg, rgba(220, 38, 38, 0.95) 0%, rgba(185, 28, 28, 0.95) 100%),
-                        url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 600"><defs><pattern id="grid" width="60" height="60" patternUnits="userSpaceOnUse"><path d="M 60 0 L 0 0 0 60" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="1"/></pattern></defs><rect width="100%" height="100%" fill="url(%23grid)"/></svg>');
-            color: var(--white);
-            text-align: center;
-            padding: 6rem 2rem;
             position: relative;
+            min-height: 600px;
+            background: linear-gradient(135deg, var(--black) 0%, var(--dark-gray) 50%, var(--medium-gray) 100%);
+            display: flex;
+            align-items: center;
             overflow: hidden;
         }
         
         .hero::before {
             content: '';
             position: absolute;
-            top: -50%;
-            left: -50%;
-            width: 200%;
-            height: 200%;
-            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
-            animation: rotate 30s linear infinite;
-            pointer-events: none;
-        }
-        
-        @keyframes rotate {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('/hero_jante.webp') center/cover;
+            opacity: 0.3;
+            z-index: 1;
         }
         
         .hero-content {
-            max-width: 800px;
-            margin: 0 auto;
             position: relative;
             z-index: 2;
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 4rem 2rem;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 4rem;
+            align-items: center;
         }
         
-        .hero h1 {
-            font-size: clamp(2.5rem, 5vw, 4rem);
+        .hero-text {
+            color: var(--white);
+        }
+        
+        .hero-title {
+            font-size: 3.5rem;
             font-weight: 900;
-            margin-bottom: 1.5rem;
             line-height: 1.2;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+            margin-bottom: 1.5rem;
+            background: linear-gradient(45deg, var(--white), var(--primary-red));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
         }
         
-        .hero .subtitle {
-            font-size: clamp(1.1rem, 2vw, 1.3rem);
+        .hero-subtitle {
+            font-size: 1.3rem;
             margin-bottom: 2rem;
-            opacity: 0.95;
-            line-height: 1.6;
+            color: var(--light-gray);
+            font-weight: 500;
         }
         
-        .hero-cta {
+        .hero-buttons {
             display: flex;
             gap: 1rem;
-            justify-content: center;
             flex-wrap: wrap;
-            margin-top: 2rem;
         }
         
         .btn {
-            background: var(--white);
-            color: var(--primary-color);
             padding: 1rem 2rem;
-            border: none;
             border-radius: var(--border-radius);
-            cursor: pointer;
-            font-size: 1.1rem;
             font-weight: 600;
-            transition: var(--transition);
             text-decoration: none;
             display: inline-flex;
             align-items: center;
             gap: 0.5rem;
-            box-shadow: var(--shadow);
+            transition: var(--transition);
+            border: 2px solid transparent;
         }
+        
+        .btn-primary {
+            background: var(--primary-red);
+            color: var(--white);
+            box-shadow: 0 8px 24px rgba(220, 38, 38, 0.4);
+        }
+        
+        .btn-primary:hover {
+            background: var(--deep-red);
+            transform: translateY(-3px);
+            box-shadow: 0 12px 32px rgba(220, 38, 38, 0.6);
+        }
+        
+        .btn-outline {
+            background: transparent;
+            color: var(--white);
+            border-color: var(--white);
+        }
+        
+        .btn-outline:hover {
+            background: var(--white);
+            color: var(--black);
+            transform: translateY(-3px);
+        }
+        
+        /* Services avec images authentiques */
+        .services {
+            padding: 6rem 2rem;
+            background: var(--light-gray);
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        
+        .section-title {
+            text-align: center;
+            margin-bottom: 4rem;
+        }
+        
+        .section-title h2 {
+            font-size: 3rem;
+            font-weight: 800;
+            color: var(--black);
+            margin-bottom: 1rem;
+        }
+        
+        .section-title p {
+            font-size: 1.2rem;
+            color: var(--medium-gray);
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        
+        .services-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+        }
+        
+        .service-card {
+            background: var(--white);
+            border-radius: var(--border-radius);
+            overflow: hidden;
+            box-shadow: var(--shadow);
+            transition: var(--transition);
+            border: 2px solid transparent;
+        }
+        
+        .service-card:hover {
+            transform: translateY(-8px);
+            box-shadow: var(--shadow-lg);
+            border-color: var(--primary-red);
+        }
+        
+        .service-image {
+            height: 200px;
+            background-size: cover;
+            background-position: center;
+            position: relative;
+        }
+        
+        .service-image::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(45deg, rgba(220, 38, 38, 0.9), rgba(0, 0, 0, 0.7));
+            opacity: 0;
+            transition: var(--transition);
+        }
+        
+        .service-card:hover .service-image::after {
+            opacity: 1;
+        }
+        
+        .service-content {
+            padding: 2rem;
+        }
+        
+        .service-content h3 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--black);
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .service-content h3 i {
+            color: var(--primary-red);
+        }
+        
+        .service-content p {
+            color: var(--medium-gray);
+            line-height: 1.7;
+        }
+        
+        /* Section Contact moderne */
+        .contact-section {
+            background: var(--black);
+            color: var(--white);
+            padding: 6rem 2rem;
+        }
+        
+        .contact-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 4rem;
+            align-items: center;
+        }
+        
+        .contact-info h3 {
+            font-size: 2.5rem;
+            font-weight: 800;
+            margin-bottom: 2rem;
+            color: var(--primary-red);
+        }
+        
+        .contact-details {
+            display: grid;
+            gap: 1.5rem;
+        }
+        
+        .contact-detail {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 1rem;
+            background: var(--dark-gray);
+            border-radius: 12px;
+            border-left: 4px solid var(--primary-red);
+        }
+        
+        .contact-detail i {
+            font-size: 1.5rem;
+            color: var(--primary-red);
+        }
+        
+        /* Footer moderne */
+        .footer {
+            background: var(--black);
+            color: var(--white);
+            border-top: 3px solid var(--primary-red);
+            padding: 3rem 2rem 2rem;
+        }
+        
+        .footer-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            text-align: center;
+        }
+        
+        .footer-logo {
+            margin-bottom: 2rem;
+        }
+        
+        .footer-logo img {
+            height: 60px;
+            background: var(--white);
+            padding: 10px;
+            border-radius: 12px;
+        }
+        
+        .footer-links {
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+        }
+        
+        .footer-links a {
+            color: var(--white);
+            text-decoration: none;
+            font-weight: 500;
+            transition: var(--transition);
+        }
+        
+        .footer-links a:hover {
+            color: var(--primary-red);
+        }
+        
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .nav-menu, .nav-contact {
+                display: none;
+            }
+            
+            .mobile-menu-btn {
+                display: block;
+            }
+            
+            .hero-content {
+                grid-template-columns: 1fr;
+                text-align: center;
+            }
+            
+            .hero-title {
+                font-size: 2.5rem;
+            }
+            
+            .contact-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .services-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation moderne noir/rouge/blanc -->
+    <nav class="navbar">
+        <div class="navbar-content">
+            <div class="logo">
+                <img src="/logo" alt="MY JANTES Logo">
+                <span class="logo-text">MY JANTES</span>
+            </div>
+            
+            <ul class="nav-menu">
+                <li><a href="#home"><i class="fas fa-home"></i> Accueil</a></li>
+                <li><a href="#services"><i class="fas fa-cogs"></i> Services</a></li>
+                <li><a href="#contact"><i class="fas fa-phone"></i> Contact</a></li>
+                <li><a href="#about"><i class="fas fa-info-circle"></i> À propos</a></li>
+            </ul>
+            
+            <div class="nav-contact">
+                <div class="contact-item">
+                    <i class="fas fa-phone"></i>
+                    <span>03.21.40.80.53</span>
+                </div>
+                <div class="contact-item">
+                    <i class="fas fa-map-marker-alt"></i>
+                    <span>Liévin</span>
+                </div>
+            </div>
+            
+            <button class="mobile-menu-btn">
+                <i class="fas fa-bars"></i>
+            </button>
+        </div>
+    </nav>
+
+    <!-- Section Hero avec image authentique -->
+    <section class="hero" id="home">
+        <div class="hero-content">
+            <div class="hero-text">
+                <h1 class="hero-title">LES EXPERTS DE LA JANTE ALU</h1>
+                <p class="hero-subtitle">Rénovation de jantes chez MY JANTES : Qualité exceptionnelle, garantie totale. Choisissez l'excellence pour vos jantes en aluminium !</p>
+                <div class="hero-buttons">
+                    <a href="#contact" class="btn btn-primary">
+                        <i class="fas fa-phone"></i>
+                        Demander un devis
+                    </a>
+                    <a href="#services" class="btn btn-outline">
+                        <i class="fas fa-eye"></i>
+                        Nos services
+                    </a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Section Services avec vraies images -->
+    <section class="services" id="services">
+        <div class="container">
+            <div class="section-title">
+                <h2>Nos Services</h2>
+                <p>Découvrez l'assurance d'une rénovation de jantes exceptionnelle. Notre expertise inégalée, associée à une garantie complète, assure des résultats durables et un éclat durable pour votre véhicule.</p>
+            </div>
+            
+            <div class="services-grid">
+                <div class="service-card">
+                    <div class="service-image" style="background-image: url('/renovation_jante.jpg')"></div>
+                    <div class="service-content">
+                        <h3><i class="fas fa-tools"></i> Rénovation</h3>
+                        <p>Rénovation complète de vos jantes en aluminium avec notre expertise technique de pointe. Redonnez vie à vos jantes avec un finish parfait.</p>
+                    </div>
+                </div>
+                
+                <div class="service-card">
+                    <div class="service-image" style="background-image: url('/personnalisation_jante.webp')"></div>
+                    <div class="service-content">
+                        <h3><i class="fas fa-palette"></i> Personnalisation</h3>
+                        <p>Personnalisez vos jantes selon vos goûts avec nos finitions sur-mesure. Couleurs, effets spéciaux, design unique pour votre véhicule.</p>
+                    </div>
+                </div>
+                
+                <div class="service-card">
+                    <div class="service-image" style="background-image: url('/devoilage_jante.jpg')"></div>
+                    <div class="service-content">
+                        <h3><i class="fas fa-sync"></i> Dévoilage</h3>
+                        <p>Service professionnel de dévoilage pour corriger les déformations. Retrouvez l'équilibre parfait et la sécurité optimale de vos jantes.</p>
+                    </div>
+                </div>
+                
+                <div class="service-card">
+                    <div class="service-image" style="background-image: url('/decapage_jante.webp')"></div>
+                    <div class="service-content">
+                        <h3><i class="fas fa-eraser"></i> Décapage</h3>
+                        <p>Décapage professionnel pour éliminer toute trace d'oxydation et préparer vos jantes pour une finition impeccable.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Section Contact moderne -->
+    <section class="contact-section" id="contact">
+        <div class="container">
+            <div class="contact-grid">
+                <div class="contact-info">
+                    <h3>Contactez-nous</h3>
+                    <div class="contact-details">
+                        <div class="contact-detail">
+                            <i class="fas fa-phone"></i>
+                            <div>
+                                <strong>Téléphone</strong><br>
+                                03.21.40.80.53
+                            </div>
+                        </div>
+                        
+                        <div class="contact-detail">
+                            <i class="fas fa-map-marker-alt"></i>
+                            <div>
+                                <strong>Adresse</strong><br>
+                                46 rue de la Convention<br>
+                                62800 Liévin
+                            </div>
+                        </div>
+                        
+                        <div class="contact-detail">
+                            <i class="fas fa-clock"></i>
+                            <div>
+                                <strong>Horaires</strong><br>
+                                Lun-Ven: 9h-12h / 13h30-18h<br>
+                                Samedi: 9h-13h
+                            </div>
+                        </div>
+                        
+                        <div class="contact-detail">
+                            <i class="fas fa-tools"></i>
+                            <div>
+                                <strong>Services</strong><br>
+                                Avec ou sans rendez-vous
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="contact-form">
+                    <form action="/api/devis" method="POST" class="form">
+                        <h4 style="color: var(--primary-red); margin-bottom: 2rem; font-size: 1.8rem;">Demander un devis</h4>
+                        
+                        <div class="form-group">
+                            <label for="client_name">Nom complet</label>
+                            <input type="text" id="client_name" name="client_name" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="client_email">Email</label>
+                            <input type="email" id="client_email" name="client_email" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="client_phone">Téléphone</label>
+                            <input type="tel" id="client_phone" name="client_phone">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="service_type">Service souhaité</label>
+                            <select id="service_type" name="service_type" required>
+                                <option value="">Choisir un service</option>
+                                <option value="renovation">Rénovation</option>
+                                <option value="personnalisation">Personnalisation</option>
+                                <option value="devoilage">Dévoilage</option>
+                                <option value="decapage">Décapage</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="description">Description détaillée</label>
+                            <textarea id="description" name="description" rows="4" placeholder="Décrivez vos besoins..."></textarea>
+                        </div>
+                        
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-paper-plane"></i>
+                            Envoyer la demande
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer moderne -->
+    <footer class="footer">
+        <div class="footer-content">
+            <div class="footer-logo">
+                <img src="/logo" alt="MY JANTES Logo">
+            </div>
+            
+            <div class="footer-links">
+                <a href="#home">Accueil</a>
+                <a href="#services">Services</a>
+                <a href="#contact">Contact</a>
+                <a href="/mentions-legales">Mentions légales</a>
+                <a href="/cgv">CGV</a>
+                <a href="/confidentialite">Confidentialité</a>
+            </div>
+            
+            <p>&copy; 2025 MY JANTES - Tous droits réservés. Spécialiste de la rénovation de jantes en aluminium.</p>
+        </div>
+    </footer>
+
+    <style>
+        /* Styles du formulaire */
+        .form {
+            background: var(--dark-gray);
+            padding: 2rem;
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow-lg);
+        }
+        
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: var(--white);
+            font-weight: 600;
+        }
+        
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 1rem;
+            border: 2px solid var(--medium-gray);
+            border-radius: 8px;
+            background: var(--white);
+            font-size: 1rem;
+            transition: var(--transition);
+        }
+        
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: var(--primary-red);
+            box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.1);
+        }
+    </style>
+
+    <script>
+        // Menu mobile
+        document.querySelector('.mobile-menu-btn').addEventListener('click', function() {
+            const navMenu = document.querySelector('.nav-menu');
+            const navContact = document.querySelector('.nav-contact');
+            navMenu.style.display = navMenu.style.display === 'flex' ? 'none' : 'flex';
+            navContact.style.display = navContact.style.display === 'flex' ? 'none' : 'flex';
+        });
+
+        // Smooth scrolling
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            });
+        });
+
+        // Form submission
+        document.querySelector('.form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const formData = new FormData(this);
+            const data = Object.fromEntries(formData);
+            
+            fetch('/api/devis', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(data)
+            })
+            .then(response => response.json())
+            .then(result => {
+                if (result.success) {
+                    alert('Votre demande de devis a été envoyée avec succès ! Nous vous contacterons rapidement.');
+                    this.reset();
+                } else {
+                    alert('Erreur lors de l\\'envoi. Veuillez réessayer.');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Erreur lors de l\\'envoi. Veuillez réessayer.');
+            });
+        });
+    </script>
+</body>
+</html>"""
         
         .btn:hover {
             transform: translateY(-3px);
