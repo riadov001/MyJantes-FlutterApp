@@ -137,12 +137,14 @@
   "keyboardKeyShift": "Shift",
   "expansionTileExpandedHint": "допрете двапати за собирање",
   "expansionTileCollapsedHint": "допри двапати за проширување",
-  "expansionTileExpandedTapHint": "Собери",
-  "expansionTileCollapsedTapHint": "Прошири за повеќе детали",
+  "expansionTileExpandedTapHint": "собирање",
+  "expansionTileCollapsedTapHint": "проширување за повеќе детали",
   "expandedHint": "Собрано",
   "collapsedHint": "Проширено",
   "menuDismissLabel": "Отфрлете го менито",
-  "lookUpButtonLabel": "Look Up",
-  "searchWebButtonLabel": "Search Web",
-  "shareButtonLabel": "Share..."
+  "lookUpButtonLabel": "Погледнете нагоре",
+  "searchWebButtonLabel": "Пребарајте на интернет",
+  "shareButtonLabel": "Сподели",
+  "clearButtonTooltip": "Избриши го текстот",
+  "selectedDateLabel": "Избрано"
 }

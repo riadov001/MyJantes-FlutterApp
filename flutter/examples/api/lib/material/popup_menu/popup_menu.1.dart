@@ -17,7 +17,7 @@ class PopupMenuApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      theme: ThemeData(useMaterial3: true, colorSchemeSeed: const Color(0xff6750a4)),
+      theme: ThemeData(colorSchemeSeed: const Color(0xff6750a4)),
       home: const PopupMenuExample(),
     );
   }
@@ -31,7 +31,7 @@ class PopupMenuExample extends StatefulWidget {
 }
 
 class _PopupMenuExampleState extends State<PopupMenuExample> {
-  SampleItem? selectedMenu;
+  SampleItem? selectedItem;
 
   @override
   Widget build(BuildContext context) {
@@ -39,26 +39,16 @@ class _PopupMenuExampleState extends State<PopupMenuExample> {
       appBar: AppBar(title: const Text('PopupMenuButton')),
       body: Center(
         child: PopupMenuButton<SampleItem>(
-          initialValue: selectedMenu,
-          // Callback that sets the selected popup menu item.
+          initialValue: selectedItem,
           onSelected: (SampleItem item) {
             setState(() {
-              selectedMenu = item;
+              selectedItem = item;
             });
           },
           itemBuilder: (BuildContext context) => <PopupMenuEntry<SampleItem>>[
-            const PopupMenuItem<SampleItem>(
-              value: SampleItem.itemOne,
-              child: Text('Item 1'),
-            ),
-            const PopupMenuItem<SampleItem>(
-              value: SampleItem.itemTwo,
-              child: Text('Item 2'),
-            ),
-            const PopupMenuItem<SampleItem>(
-              value: SampleItem.itemThree,
-              child: Text('Item 3'),
-            ),
+            const PopupMenuItem<SampleItem>(value: SampleItem.itemOne, child: Text('Item 1')),
+            const PopupMenuItem<SampleItem>(value: SampleItem.itemTwo, child: Text('Item 2')),
+            const PopupMenuItem<SampleItem>(value: SampleItem.itemThree, child: Text('Item 3')),
           ],
         ),
       ),

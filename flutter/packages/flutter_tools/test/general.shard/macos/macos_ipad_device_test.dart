@@ -27,7 +27,7 @@ void main() {
 
     testWithoutContext('does not support non-macOS platforms', () async {
       MacOSDesignedForIPadDevices.allowDiscovery = true;
-      final MacOSDesignedForIPadDevices discoverer = MacOSDesignedForIPadDevices(
+      final discoverer = MacOSDesignedForIPadDevices(
         platform: FakePlatform(operatingSystem: 'windows'),
         logger: BufferLogger.test(),
         processManager: FakeProcessManager.any(),
@@ -40,7 +40,7 @@ void main() {
     });
 
     testWithoutContext('discovery not allowed', () async {
-      final MacOSDesignedForIPadDevices discoverer = MacOSDesignedForIPadDevices(
+      final discoverer = MacOSDesignedForIPadDevices(
         platform: FakePlatform(operatingSystem: 'macos'),
         logger: BufferLogger.test(),
         processManager: FakeProcessManager.any(),
@@ -56,7 +56,7 @@ void main() {
 
     testWithoutContext('no device on x86', () async {
       MacOSDesignedForIPadDevices.allowDiscovery = true;
-      final MacOSDesignedForIPadDevices discoverer = MacOSDesignedForIPadDevices(
+      final discoverer = MacOSDesignedForIPadDevices(
         platform: FakePlatform(operatingSystem: 'macos'),
         logger: BufferLogger.test(),
         processManager: FakeProcessManager.any(),
@@ -72,7 +72,7 @@ void main() {
 
     testWithoutContext('no device on when iOS development off', () async {
       MacOSDesignedForIPadDevices.allowDiscovery = true;
-      final MacOSDesignedForIPadDevices discoverer = MacOSDesignedForIPadDevices(
+      final discoverer = MacOSDesignedForIPadDevices(
         platform: FakePlatform(operatingSystem: 'macos'),
         logger: BufferLogger.test(),
         processManager: FakeProcessManager.any(),
@@ -88,7 +88,7 @@ void main() {
 
     testWithoutContext('device discovery on arm', () async {
       MacOSDesignedForIPadDevices.allowDiscovery = true;
-      final MacOSDesignedForIPadDevices discoverer = MacOSDesignedForIPadDevices(
+      final discoverer = MacOSDesignedForIPadDevices(
         platform: FakePlatform(operatingSystem: 'macos'),
         logger: BufferLogger.test(),
         processManager: FakeProcessManager.any(),
@@ -103,7 +103,7 @@ void main() {
 
       final Device device = devices.single;
       expect(device, isA<MacOSDesignedForIPadDevice>());
-      expect(device.id, 'designed-for-ipad');
+      expect(device.id, 'mac-designed-for-ipad');
 
       // Timeout ignored.
       devices = await discoverer.discoverDevices(timeout: const Duration(seconds: 10));
@@ -112,13 +112,13 @@ void main() {
   });
 
   testWithoutContext('MacOSDesignedForIPadDevice properties', () async {
-    final MacOSDesignedForIPadDevice device = MacOSDesignedForIPadDevice(
+    final device = MacOSDesignedForIPadDevice(
       logger: BufferLogger.test(),
       processManager: FakeProcessManager.any(),
       fileSystem: MemoryFileSystem.test(),
       operatingSystemUtils: FakeOperatingSystemUtils(hostPlatform: HostPlatform.darwin_arm64),
     );
-    expect(device.id, 'designed-for-ipad');
+    expect(device.id, 'mac-designed-for-ipad');
     expect(await device.isLocalEmulator, isFalse);
     expect(device.name, 'Mac Designed for iPad');
     expect(device.portForwarder, isNot(isNull));
@@ -129,19 +129,22 @@ void main() {
     expect(await device.isLatestBuildInstalled(FakeApplicationPackage()), isTrue);
     expect(await device.uninstallApp(FakeApplicationPackage()), isTrue);
 
-    expect(device.isSupported(), isTrue);
+    expect(await device.isSupported(), isTrue);
     expect(device.getLogReader(), isA<DesktopLogReader>());
 
-     expect(await device.stopApp(FakeIOSApp()), isFalse);
+    expect(await device.stopApp(FakeIOSApp()), isFalse);
 
     await expectLater(
-          () => device.startApp(
+      () => device.startApp(
         FakeIOSApp(),
         debuggingOptions: DebuggingOptions.disabled(BuildInfo.debug),
       ),
       throwsA(isA<UnimplementedError>()),
     );
-    await expectLater(() => device.buildForDevice(buildInfo: BuildInfo.debug), throwsA(isA<UnimplementedError>()));
+    await expectLater(
+      () => device.buildForDevice(buildInfo: BuildInfo.debug),
+      throwsA(isA<UnimplementedError>()),
+    );
     expect(device.executablePathForDevice(FakeIOSApp(), BuildInfo.debug), null);
   });
 }
@@ -154,4 +157,5 @@ class FakeIOSWorkflow extends Fake implements IOSWorkflow {
 }
 
 class FakeApplicationPackage extends Fake implements ApplicationPackage {}
+
 class FakeIOSApp extends Fake implements IOSApp {}

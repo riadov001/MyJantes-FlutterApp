@@ -2,11 +2,16 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+/// @docImport 'package:flutter/animation.dart';
+/// @docImport 'package:flutter/widgets.dart';
+library;
+
 import 'dart:ui' show VoidCallback;
 
 import 'package:meta/meta.dart';
 
 import 'assertions.dart';
+import 'debug.dart';
 import 'diagnostics.dart';
 import 'memory_allocations.dart';
 
@@ -62,11 +67,11 @@ abstract class Listenable {
   /// Return a [Listenable] that triggers when any of the given [Listenable]s
   /// themselves trigger.
   ///
-  /// The list must not be changed after this method has been called. Doing so
-  /// will lead to memory leaks or exceptions.
+  /// Once the factory is called, items must not be added or removed from the iterable.
+  /// Doing so will lead to memory leaks or exceptions.
   ///
-  /// The list may contain nulls; they are ignored.
-  factory Listenable.merge(List<Listenable?> listenables) = _MergingListenable;
+  /// The iterable may contain nulls; they are ignored.
+  factory Listenable.merge(Iterable<Listenable?> listenables) = _MergingListenable;
 
   /// Register a closure to be called when the object notifies its listeners.
   void addListener(VoidCallback listener);
@@ -95,8 +100,6 @@ abstract class ValueListenable<T> extends Listenable {
   /// registered with [addListener] will be invoked.
   T get value;
 }
-
-const String _flutterFoundationLibrary = 'package:flutter/foundation.dart';
 
 /// A class that can be extended or mixed in that provides a change notification
 /// API using [VoidCallback] for notifications.
@@ -148,11 +151,11 @@ mixin class ChangeNotifier implements Listenable {
   bool _debugDisposed = false;
 
   /// If true, the event [ObjectCreated] for this instance was dispatched to
-  /// [MemoryAllocations].
+  /// [FlutterMemoryAllocations].
   ///
-  /// As [ChangedNotifier] is used as mixin, it does not have constructor,
+  /// As [ChangeNotifier] is used as mixin, it does not have constructor,
   /// so we use [addListener] to dispatch the event.
-  bool _creationDispatched = false;
+  bool _debugCreationDispatched = false;
 
   /// Used by subclasses to assert that the [ChangeNotifier] has not yet been
   /// disposed.
@@ -207,7 +210,7 @@ mixin class ChangeNotifier implements Listenable {
   @protected
   bool get hasListeners => _count > 0;
 
-  /// Dispatches event of the [object] creation to [MemoryAllocations.instance].
+  /// Dispatches event of the [object] creation to [FlutterMemoryAllocations.instance].
   ///
   /// If the event was already dispatched or [kFlutterMemoryAllocationsEnabled]
   /// is false, the method is noop.
@@ -228,16 +231,13 @@ mixin class ChangeNotifier implements Listenable {
   /// so that the method is tree-shaken away when the flag is false.
   @protected
   static void maybeDispatchObjectCreation(ChangeNotifier object) {
-    // Tree shaker does not include this method and the class MemoryAllocations
-    // if kFlutterMemoryAllocationsEnabled is false.
-    if (kFlutterMemoryAllocationsEnabled && !object._creationDispatched) {
-      MemoryAllocations.instance.dispatchObjectCreated(
-        library: _flutterFoundationLibrary,
-        className: '$ChangeNotifier',
-        object: object,
-      );
-      object._creationDispatched = true;
-    }
+    assert(() {
+      if (!object._debugCreationDispatched) {
+        debugMaybeDispatchCreated('foundation', 'ChangeNotifier', object);
+        object._debugCreationDispatched = true;
+      }
+      return true;
+    }());
   }
 
   /// Register a closure to be called when the object changes.
@@ -278,8 +278,10 @@ mixin class ChangeNotifier implements Listenable {
       if (_count == 0) {
         _listeners = List<VoidCallback?>.filled(1, null);
       } else {
-        final List<VoidCallback?> newListeners =
-            List<VoidCallback?>.filled(_listeners.length * 2, null);
+        final List<VoidCallback?> newListeners = List<VoidCallback?>.filled(
+          _listeners.length * 2,
+          null,
+        );
         for (int i = 0; i < _count; i++) {
           newListeners[i] = _listeners[i];
         }
@@ -381,11 +383,11 @@ mixin class ChangeNotifier implements Listenable {
     );
     assert(() {
       _debugDisposed = true;
+      if (_debugCreationDispatched) {
+        assert(debugMaybeDispatchDisposed(this));
+      }
       return true;
     }());
-    if (kFlutterMemoryAllocationsEnabled && _creationDispatched) {
-      MemoryAllocations.instance.dispatchObjectDisposed(object: this);
-    }
     _listeners = _emptyListeners;
     _count = 0;
   }
@@ -432,19 +434,21 @@ mixin class ChangeNotifier implements Listenable {
       try {
         _listeners[i]?.call();
       } catch (exception, stack) {
-        FlutterError.reportError(FlutterErrorDetails(
-          exception: exception,
-          stack: stack,
-          library: 'foundation library',
-          context: ErrorDescription('while dispatching notifications for $runtimeType'),
-          informationCollector: () => <DiagnosticsNode>[
-            DiagnosticsProperty<ChangeNotifier>(
-              'The $runtimeType sending notification was',
-              this,
-              style: DiagnosticsTreeStyle.errorProperty,
-            ),
-          ],
-        ));
+        FlutterError.reportError(
+          FlutterErrorDetails(
+            exception: exception,
+            stack: stack,
+            library: 'foundation library',
+            context: ErrorDescription('while dispatching notifications for $runtimeType'),
+            informationCollector: () => <DiagnosticsNode>[
+              DiagnosticsProperty<ChangeNotifier>(
+                'The $runtimeType sending notification was',
+                this,
+                style: DiagnosticsTreeStyle.errorProperty,
+              ),
+            ],
+          ),
+        );
       }
     }
 
@@ -491,7 +495,7 @@ mixin class ChangeNotifier implements Listenable {
 class _MergingListenable extends Listenable {
   _MergingListenable(this._children);
 
-  final List<Listenable?> _children;
+  final Iterable<Listenable?> _children;
 
   @override
   void addListener(VoidCallback listener) {

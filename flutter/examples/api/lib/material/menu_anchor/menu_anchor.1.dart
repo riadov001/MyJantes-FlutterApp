@@ -126,7 +126,6 @@ class _MyContextMenuState extends State<MyContextMenu> {
         onSecondaryTapDown: _handleSecondaryTapDown,
         child: MenuAnchor(
           controller: _menuController,
-          anchorTapClosesMenu: true,
           menuChildren: <Widget>[
             MenuItemButton(
               child: Text(MenuEntry.about.label),
@@ -221,6 +220,10 @@ class _MyContextMenuState extends State<MyContextMenu> {
   }
 
   void _handleTapDown(TapDownDetails details) {
+    if (_menuController.isOpen) {
+      _menuController.close();
+      return;
+    }
     switch (defaultTargetPlatform) {
       case TargetPlatform.android:
       case TargetPlatform.fuchsia:
@@ -234,7 +237,9 @@ class _MyContextMenuState extends State<MyContextMenu> {
         // Only open the menu on these platforms if the control button is down
         // when the tap occurs.
         if (HardwareKeyboard.instance.logicalKeysPressed.contains(LogicalKeyboardKey.controlLeft) ||
-            HardwareKeyboard.instance.logicalKeysPressed.contains(LogicalKeyboardKey.controlRight)) {
+            HardwareKeyboard.instance.logicalKeysPressed.contains(
+              LogicalKeyboardKey.controlRight,
+            )) {
           _menuController.open(position: details.localPosition);
         }
     }
@@ -248,9 +253,8 @@ class ContextMenuApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      theme: ThemeData(useMaterial3: true),
-      home: const Scaffold(body: MyContextMenu(message: kMessage)),
+    return const MaterialApp(
+      home: Scaffold(body: MyContextMenu(message: kMessage)),
     );
   }
 }

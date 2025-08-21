@@ -13,21 +13,19 @@ import '../gradle_utils.dart';
 /// that instead of using a value defaults to the version defined by the
 /// flutter sdk as the minimum supported by flutter.
 @visibleForTesting
-const String replacementMinSdkText = 'minSdkVersion flutter.minSdkVersion';
+const replacementMinSdkText = 'minSdkVersion flutter.minSdkVersion';
 
 @visibleForTesting
-const String appGradleNotFoundWarning = 'Module level build.gradle file not found, skipping minSdkVersion migration.';
+const appGradleNotFoundWarning =
+    'Module level build.gradle file not found, skipping minSdkVersion migration.';
 
 class MinSdkVersionMigration extends ProjectMigrator {
-  MinSdkVersionMigration(
-      AndroidProject project,
-      super.logger,
-  ) : _project = project;
+  MinSdkVersionMigration(AndroidProject project, super.logger) : _project = project;
 
   final AndroidProject _project;
 
   @override
-  void migrate() {
+  Future<void> migrate() async {
     // Skip applying migration in modules as the FlutterExtension is not applied.
     if (_project.isModule) {
       return;
@@ -42,6 +40,6 @@ class MinSdkVersionMigration extends ProjectMigrator {
 
   @override
   String migrateFileContents(String fileContents) {
-    return fileContents.replaceAll(jellyBeanMinSdkVersionMatch, replacementMinSdkText);
+    return fileContents.replaceAll(tooOldMinSdkVersionMatch, replacementMinSdkText);
   }
 }

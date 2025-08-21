@@ -2,20 +2,18 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-import 'dart:ui' show DisplayFeature, DisplayFeatureState, DisplayFeatureType, SemanticsFlag;
+import 'dart:ui';
 
 import 'package:flutter/foundation.dart';
-import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:leak_tracker_flutter_testing/leak_tracker_flutter_testing.dart';
 
+import '../widgets/feedback_tester.dart';
 import '../widgets/semantics_tester.dart';
-import 'feedback_tester.dart';
 
 void main() {
-  testWidgetsWithLeakTracking('Navigator.push works within a PopupMenuButton', (WidgetTester tester) async {
+  testWidgets('Navigator.push works within a PopupMenuButton', (WidgetTester tester) async {
     final Key targetKey = UniqueKey();
     await tester.pumpWidget(
       MaterialApp(
@@ -35,10 +33,7 @@ void main() {
                   },
                   itemBuilder: (BuildContext context) {
                     return <PopupMenuItem<int>>[
-                      const PopupMenuItem<int>(
-                        value: 1,
-                        child: Text('One'),
-                      ),
+                      const PopupMenuItem<int>(value: 1, child: Text('One')),
                     ];
                   },
                 );
@@ -65,7 +60,9 @@ void main() {
     expect(find.text('Next'), findsOneWidget);
   });
 
-  testWidgetsWithLeakTracking('PopupMenuButton calls onOpened callback when the menu is opened', (WidgetTester tester) async {
+  testWidgets('PopupMenuButton calls onOpened callback when the menu is opened', (
+    WidgetTester tester,
+  ) async {
     int opens = 0;
     late BuildContext popupContext;
     final Key noItemsKey = UniqueKey();
@@ -89,10 +86,7 @@ void main() {
                 itemBuilder: (BuildContext context) {
                   popupContext = context;
                   return <PopupMenuEntry<int>>[
-                    const PopupMenuItem<int>(
-                      value: 1,
-                      child: Text('Tap me please!'),
-                    ),
+                    const PopupMenuItem<int>(value: 1, child: Text('Tap me please!')),
                   ];
                 },
               ),
@@ -100,10 +94,7 @@ void main() {
                 key: withCallbackKey,
                 itemBuilder: (BuildContext context) {
                   return <PopupMenuEntry<int>>[
-                    const PopupMenuItem<int>(
-                      value: 1,
-                      child: Text('Tap me, too!'),
-                    ),
+                    const PopupMenuItem<int>(value: 1, child: Text('Tap me, too!')),
                   ];
                 },
                 onOpened: () => opens++,
@@ -134,7 +125,9 @@ void main() {
     expect(opens, equals(1));
   });
 
-  testWidgetsWithLeakTracking('PopupMenuButton calls onCanceled callback when an item is not selected', (WidgetTester tester) async {
+  testWidgets('PopupMenuButton calls onCanceled callback when an item is not selected', (
+    WidgetTester tester,
+  ) async {
     int cancels = 0;
     late BuildContext popupContext;
     final Key noCallbackKey = UniqueKey();
@@ -149,10 +142,7 @@ void main() {
                 key: noCallbackKey,
                 itemBuilder: (BuildContext context) {
                   return <PopupMenuEntry<int>>[
-                    const PopupMenuItem<int>(
-                      value: 1,
-                      child: Text('Tap me please!'),
-                    ),
+                    const PopupMenuItem<int>(value: 1, child: Text('Tap me please!')),
                   ];
                 },
               ),
@@ -162,10 +152,7 @@ void main() {
                 itemBuilder: (BuildContext context) {
                   popupContext = context;
                   return <PopupMenuEntry<int>>[
-                    const PopupMenuItem<int>(
-                      value: 1,
-                      child: Text('Tap me, too!'),
-                    ),
+                    const PopupMenuItem<int>(value: 1, child: Text('Tap me, too!')),
                   ];
                 },
               ),
@@ -200,92 +187,92 @@ void main() {
     expect(cancels, equals(2));
   });
 
-  testWidgetsWithLeakTracking('Disabled PopupMenuButton will not call itemBuilder, onOpened, onSelected or onCanceled', (WidgetTester tester) async {
-    final GlobalKey popupButtonKey = GlobalKey();
-    bool itemBuilderCalled = false;
-    bool onOpenedCalled = false;
-    bool onSelectedCalled = false;
-    bool onCanceledCalled = false;
+  testWidgets(
+    'Disabled PopupMenuButton will not call itemBuilder, onOpened, onSelected or onCanceled',
+    (WidgetTester tester) async {
+      final GlobalKey popupButtonKey = GlobalKey();
+      bool itemBuilderCalled = false;
+      bool onOpenedCalled = false;
+      bool onSelectedCalled = false;
+      bool onCanceledCalled = false;
 
-    Widget buildApp({bool directional = false}) {
-      return MaterialApp(
-        home: Builder(builder: (BuildContext context) {
-          return MediaQuery(
-            data: MediaQuery.of(context).copyWith(
-              navigationMode: NavigationMode.directional,
-            ),
-            child: Material(
-              child: Column(
-                children: <Widget>[
-                  PopupMenuButton<int>(
-                    enabled: false,
-                    child: Text('Tap Me', key: popupButtonKey),
-                    itemBuilder: (BuildContext context) {
-                      itemBuilderCalled = true;
-                      return <PopupMenuEntry<int>>[
-                        const PopupMenuItem<int>(
-                          value: 1,
-                          child: Text('Tap me please!'),
-                        ),
-                      ];
-                    },
-                    onOpened: ()=> onOpenedCalled = true,
-                    onSelected: (int selected) => onSelectedCalled = true,
-                    onCanceled: () => onCanceledCalled = true,
+      Widget buildApp({bool directional = false}) {
+        return MaterialApp(
+          home: Builder(
+            builder: (BuildContext context) {
+              return MediaQuery(
+                data: MediaQuery.of(context).copyWith(navigationMode: NavigationMode.directional),
+                child: Material(
+                  child: Column(
+                    children: <Widget>[
+                      PopupMenuButton<int>(
+                        enabled: false,
+                        child: Text('Tap Me', key: popupButtonKey),
+                        itemBuilder: (BuildContext context) {
+                          itemBuilderCalled = true;
+                          return <PopupMenuEntry<int>>[
+                            const PopupMenuItem<int>(value: 1, child: Text('Tap me please!')),
+                          ];
+                        },
+                        onOpened: () => onOpenedCalled = true,
+                        onSelected: (int selected) => onSelectedCalled = true,
+                        onCanceled: () => onCanceledCalled = true,
+                      ),
+                    ],
                   ),
-                ],
-              ),
-            ),
-          );
-        }),
-      );
-    }
+                ),
+              );
+            },
+          ),
+        );
+      }
 
-    await tester.pumpWidget(buildApp());
+      await tester.pumpWidget(buildApp());
 
-    // Try to bring up the popup menu and select the first item from it
-    await tester.tap(find.byKey(popupButtonKey));
-    await tester.pumpAndSettle();
-    await tester.tap(find.byKey(popupButtonKey));
-    await tester.pumpAndSettle();
-    expect(itemBuilderCalled, isFalse);
-    expect(onOpenedCalled, isFalse);
-    expect(onSelectedCalled, isFalse);
+      // Try to bring up the popup menu and select the first item from it
+      await tester.tap(find.byKey(popupButtonKey));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(popupButtonKey));
+      await tester.pumpAndSettle();
+      expect(itemBuilderCalled, isFalse);
+      expect(onOpenedCalled, isFalse);
+      expect(onSelectedCalled, isFalse);
 
-    // Try to bring up the popup menu and tap outside it to cancel the menu
-    await tester.tap(find.byKey(popupButtonKey));
-    await tester.pumpAndSettle();
-    await tester.tapAt(Offset.zero);
-    await tester.pumpAndSettle();
-    expect(itemBuilderCalled, isFalse);
-    expect(onOpenedCalled, isFalse);
-    expect(onCanceledCalled, isFalse);
+      // Try to bring up the popup menu and tap outside it to cancel the menu
+      await tester.tap(find.byKey(popupButtonKey));
+      await tester.pumpAndSettle();
+      await tester.tapAt(Offset.zero);
+      await tester.pumpAndSettle();
+      expect(itemBuilderCalled, isFalse);
+      expect(onOpenedCalled, isFalse);
+      expect(onCanceledCalled, isFalse);
 
-    // Test again, with directional navigation mode and after focusing the button.
-    await tester.pumpWidget(buildApp(directional: true));
+      // Test again, with directional navigation mode and after focusing the button.
+      await tester.pumpWidget(buildApp(directional: true));
 
-    // Try to bring up the popup menu and select the first item from it
-    Focus.of(popupButtonKey.currentContext!).requestFocus();
-    await tester.pumpAndSettle();
-    await tester.tap(find.byKey(popupButtonKey));
-    await tester.pumpAndSettle();
-    await tester.tap(find.byKey(popupButtonKey));
-    await tester.pumpAndSettle();
-    expect(itemBuilderCalled, isFalse);
-    expect(onOpenedCalled, isFalse);
-    expect(onSelectedCalled, isFalse);
+      // Try to bring up the popup menu and select the first item from it
+      Focus.of(popupButtonKey.currentContext!).requestFocus();
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(popupButtonKey));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(popupButtonKey));
+      await tester.pumpAndSettle();
+      expect(itemBuilderCalled, isFalse);
+      expect(onOpenedCalled, isFalse);
+      expect(onSelectedCalled, isFalse);
 
-    // Try to bring up the popup menu and tap outside it to cancel the menu
-    await tester.tap(find.byKey(popupButtonKey));
-    await tester.pumpAndSettle();
-    await tester.tapAt(Offset.zero);
-    await tester.pumpAndSettle();
-    expect(itemBuilderCalled, isFalse);
-    expect(onOpenedCalled, isFalse);
-    expect(onCanceledCalled, isFalse);
-  });
+      // Try to bring up the popup menu and tap outside it to cancel the menu
+      await tester.tap(find.byKey(popupButtonKey));
+      await tester.pumpAndSettle();
+      await tester.tapAt(Offset.zero);
+      await tester.pumpAndSettle();
+      expect(itemBuilderCalled, isFalse);
+      expect(onOpenedCalled, isFalse);
+      expect(onCanceledCalled, isFalse);
+    },
+  );
 
-  testWidgetsWithLeakTracking('disabled PopupMenuButton is not focusable', (WidgetTester tester) async {
+  testWidgets('disabled PopupMenuButton is not focusable', (WidgetTester tester) async {
     final Key popupButtonKey = UniqueKey();
     final GlobalKey childKey = GlobalKey();
     bool itemBuilderCalled = false;
@@ -304,10 +291,7 @@ void main() {
                 itemBuilder: (BuildContext context) {
                   itemBuilderCalled = true;
                   return <PopupMenuEntry<int>>[
-                    const PopupMenuItem<int>(
-                      value: 1,
-                      child: Text('Tap me please!'),
-                    ),
+                    const PopupMenuItem<int>(value: 1, child: Text('Tap me please!')),
                   ];
                 },
                 onOpened: () => onOpenedCalled = true,
@@ -327,39 +311,38 @@ void main() {
     expect(onSelectedCalled, isFalse);
   });
 
-  testWidgetsWithLeakTracking('Disabled PopupMenuButton is focusable with directional navigation', (WidgetTester tester) async {
+  testWidgets('Disabled PopupMenuButton is focusable with directional navigation', (
+    WidgetTester tester,
+  ) async {
     final Key popupButtonKey = UniqueKey();
     final GlobalKey childKey = GlobalKey();
 
     await tester.pumpWidget(
       MaterialApp(
-        home: Builder(builder: (BuildContext context) {
-          return MediaQuery(
-            data: MediaQuery.of(context).copyWith(
-              navigationMode: NavigationMode.directional,
-            ),
-            child: Material(
-              child: Column(
-                children: <Widget>[
-                  PopupMenuButton<int>(
-                    key: popupButtonKey,
-                    enabled: false,
-                    child: Container(key: childKey),
-                    itemBuilder: (BuildContext context) {
-                      return <PopupMenuEntry<int>>[
-                        const PopupMenuItem<int>(
-                          value: 1,
-                          child: Text('Tap me please!'),
-                        ),
-                      ];
-                    },
-                    onSelected: (int selected) {},
-                  ),
-                ],
+        home: Builder(
+          builder: (BuildContext context) {
+            return MediaQuery(
+              data: MediaQuery.of(context).copyWith(navigationMode: NavigationMode.directional),
+              child: Material(
+                child: Column(
+                  children: <Widget>[
+                    PopupMenuButton<int>(
+                      key: popupButtonKey,
+                      enabled: false,
+                      child: Container(key: childKey),
+                      itemBuilder: (BuildContext context) {
+                        return <PopupMenuEntry<int>>[
+                          const PopupMenuItem<int>(value: 1, child: Text('Tap me please!')),
+                        ];
+                      },
+                      onSelected: (int selected) {},
+                    ),
+                  ],
+                ),
               ),
-            ),
-          );
-        }),
+            );
+          },
+        ),
       ),
     );
     Focus.of(childKey.currentContext!).requestFocus();
@@ -368,7 +351,7 @@ void main() {
     expect(Focus.of(childKey.currentContext!).hasPrimaryFocus, isTrue);
   });
 
-  testWidgetsWithLeakTracking('PopupMenuItem onTap callback is called when defined', (WidgetTester tester) async {
+  testWidgets('PopupMenuItem onTap callback is called when defined', (WidgetTester tester) async {
     final List<int> menuItemTapCounters = <int>[0, 0];
 
     await tester.pumpWidget(
@@ -391,9 +374,7 @@ void main() {
                     menuItemTapCounters[1] += 1;
                   },
                 ),
-                const PopupMenuItem<void>(
-                  child: Text('Option without onTap'),
-                ),
+                const PopupMenuItem<void>(child: Text('Option without onTap')),
               ],
             ),
           ),
@@ -430,7 +411,7 @@ void main() {
     expect(menuItemTapCounters, <int>[2, 1]);
   });
 
-  testWidgetsWithLeakTracking('PopupMenuItem can have both onTap and value', (WidgetTester tester) async {
+  testWidgets('PopupMenuItem can have both onTap and value', (WidgetTester tester) async {
     final List<int> menuItemTapCounters = <int>[0, 0];
     String? selected;
 
@@ -441,7 +422,9 @@ void main() {
           child: RepaintBoundary(
             child: PopupMenuButton<String>(
               child: const Text('Actions'),
-              onSelected: (String value) { selected = value; },
+              onSelected: (String value) {
+                selected = value;
+              },
               itemBuilder: (BuildContext context) => <PopupMenuItem<String>>[
                 PopupMenuItem<String>(
                   value: 'first',
@@ -457,10 +440,7 @@ void main() {
                     menuItemTapCounters[1] += 1;
                   },
                 ),
-               const PopupMenuItem<String>(
-                 value: 'third',
-                 child: Text('Option without onTap'),
-                ),
+                const PopupMenuItem<String>(value: 'third', child: Text('Option without onTap')),
               ],
             ),
           ),
@@ -501,7 +481,7 @@ void main() {
     expect(selected, 'third');
   });
 
-  testWidgetsWithLeakTracking('PopupMenuItem is only focusable when enabled', (WidgetTester tester) async {
+  testWidgets('PopupMenuItem is only focusable when enabled', (WidgetTester tester) async {
     final Key popupButtonKey = UniqueKey();
     final GlobalKey childKey = GlobalKey();
     bool itemBuilderCalled = false;
@@ -516,10 +496,7 @@ void main() {
                 itemBuilder: (BuildContext context) {
                   itemBuilderCalled = true;
                   return <PopupMenuEntry<int>>[
-                    PopupMenuItem<int>(
-                      value: 1,
-                      child: Text('Tap me please!', key: childKey),
-                    ),
+                    PopupMenuItem<int>(value: 1, child: Text('Tap me please!', key: childKey)),
                   ];
                 },
               ),
@@ -578,7 +555,7 @@ void main() {
     expect(Focus.of(childKey.currentContext!).hasPrimaryFocus, isFalse);
   });
 
-  testWidgetsWithLeakTracking('PopupMenuButton is horizontal on iOS', (WidgetTester tester) async {
+  testWidgets('PopupMenuButton is horizontal on iOS', (WidgetTester tester) async {
     Widget build(TargetPlatform platform) {
       debugDefaultTargetPlatformOverride = platform;
       return MaterialApp(
@@ -588,10 +565,7 @@ void main() {
               PopupMenuButton<int>(
                 itemBuilder: (BuildContext context) {
                   return <PopupMenuItem<int>>[
-                    const PopupMenuItem<int>(
-                      value: 1,
-                      child: Text('One'),
-                    ),
+                    const PopupMenuItem<int>(value: 1, child: Text('One')),
                   ];
                 },
               ),
@@ -624,36 +598,32 @@ void main() {
   group('PopupMenuButton with Icon', () {
     // Helper function to create simple and valid popup menus.
     List<PopupMenuItem<int>> simplePopupMenuItemBuilder(BuildContext context) {
-      return <PopupMenuItem<int>>[
-        const PopupMenuItem<int>(
-            value: 1,
-            child: Text('1'),
-        ),
-      ];
+      return <PopupMenuItem<int>>[const PopupMenuItem<int>(value: 1, child: Text('1'))];
     }
 
-    testWidgetsWithLeakTracking('PopupMenuButton fails when given both child and icon', (WidgetTester tester) async {
+    testWidgets('PopupMenuButton fails when given both child and icon', (
+      WidgetTester tester,
+    ) async {
       expect(() {
         PopupMenuButton<int>(
-            icon: const Icon(Icons.view_carousel),
-            itemBuilder: simplePopupMenuItemBuilder,
-            child: const Text('heyo'),
+          icon: const Icon(Icons.view_carousel),
+          itemBuilder: simplePopupMenuItemBuilder,
+          child: const Text('heyo'),
         );
       }, throwsAssertionError);
     });
 
-    testWidgetsWithLeakTracking('PopupMenuButton creates IconButton when given an icon', (WidgetTester tester) async {
+    testWidgets('PopupMenuButton creates IconButton when given an icon', (
+      WidgetTester tester,
+    ) async {
       final PopupMenuButton<int> button = PopupMenuButton<int>(
         icon: const Icon(Icons.view_carousel),
         itemBuilder: simplePopupMenuItemBuilder,
       );
 
-      await tester.pumpWidget(MaterialApp(
-          home: Scaffold(
-            appBar: AppBar(
-              actions: <Widget>[button],
-            ),
-          ),
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(appBar: AppBar(actions: <Widget>[button])),
         ),
       );
 
@@ -662,7 +632,7 @@ void main() {
     });
   });
 
-  testWidgetsWithLeakTracking('PopupMenu positioning', (WidgetTester tester) async {
+  testWidgets('PopupMenu positioning', (WidgetTester tester) async {
     final Widget testButton = PopupMenuButton<int>(
       itemBuilder: (BuildContext context) {
         return <PopupMenuItem<int>>[
@@ -671,29 +641,20 @@ void main() {
           const PopupMenuItem<int>(value: 3, child: Text('CCC')),
         ];
       },
-      child: const SizedBox(
-        height: 100.0,
-        width: 100.0,
-        child: Text('XXX'),
-      ),
+      child: const SizedBox(height: 100.0, width: 100.0, child: Text('XXX')),
     );
-    bool popupMenu(Widget widget) {
-      final String widgetType = widget.runtimeType.toString();
-      // TODO(mraleph): Remove the old case below.
-      return widgetType == '_PopupMenu<int?>' // normal case
-          || widgetType == '_PopupMenu'; // for old versions of Dart that don't reify method type arguments
-    }
+
+    bool popupMenu(Widget widget) => widget.runtimeType.toString() == '_PopupMenu<int?>';
 
     Future<void> openMenu(TextDirection textDirection, Alignment alignment) async {
       return TestAsyncUtils.guard<void>(() async {
         await tester.pumpWidget(Container()); // reset in case we had a menu up already
-        await tester.pumpWidget(TestApp(
-          textDirection: textDirection,
-          child: Align(
-            alignment: alignment,
-            child: testButton,
+        await tester.pumpWidget(
+          TestApp(
+            textDirection: textDirection,
+            child: Align(alignment: alignment, child: testButton),
           ),
-        ));
+        );
         await tester.tap(find.text('XXX'));
         await tester.pump();
       });
@@ -822,30 +783,142 @@ void main() {
       });
     }
 
-    await testPositioningDown(tester, TextDirection.ltr, Alignment.topRight, TextDirection.rtl, const Rect.fromLTWH(792.0, 8.0, 0.0, 0.0));
-    await testPositioningDown(tester, TextDirection.rtl, Alignment.topRight, TextDirection.rtl, const Rect.fromLTWH(792.0, 8.0, 0.0, 0.0));
-    await testPositioningDown(tester, TextDirection.ltr, Alignment.topLeft, TextDirection.ltr, const Rect.fromLTWH(8.0, 8.0, 0.0, 0.0));
-    await testPositioningDown(tester, TextDirection.rtl, Alignment.topLeft, TextDirection.ltr, const Rect.fromLTWH(8.0, 8.0, 0.0, 0.0));
-    await testPositioningDown(tester, TextDirection.ltr, Alignment.topCenter, TextDirection.ltr, const Rect.fromLTWH(350.0, 8.0, 0.0, 0.0));
-    await testPositioningDown(tester, TextDirection.rtl, Alignment.topCenter, TextDirection.rtl, const Rect.fromLTWH(450.0, 8.0, 0.0, 0.0));
-    await testPositioningDown(tester, TextDirection.ltr, Alignment.centerRight, TextDirection.rtl, const Rect.fromLTWH(792.0, 250.0, 0.0, 0.0));
-    await testPositioningDown(tester, TextDirection.rtl, Alignment.centerRight, TextDirection.rtl, const Rect.fromLTWH(792.0, 250.0, 0.0, 0.0));
-    await testPositioningDown(tester, TextDirection.ltr, Alignment.centerLeft, TextDirection.ltr, const Rect.fromLTWH(8.0, 250.0, 0.0, 0.0));
-    await testPositioningDown(tester, TextDirection.rtl, Alignment.centerLeft, TextDirection.ltr, const Rect.fromLTWH(8.0, 250.0, 0.0, 0.0));
-    await testPositioningDown(tester, TextDirection.ltr, Alignment.center, TextDirection.ltr, const Rect.fromLTWH(350.0, 250.0, 0.0, 0.0));
-    await testPositioningDown(tester, TextDirection.rtl, Alignment.center, TextDirection.rtl, const Rect.fromLTWH(450.0, 250.0, 0.0, 0.0));
-    await testPositioningDownThenUp(tester, TextDirection.ltr, Alignment.bottomRight, TextDirection.rtl, const Rect.fromLTWH(792.0, 500.0, 0.0, 0.0));
-    await testPositioningDownThenUp(tester, TextDirection.rtl, Alignment.bottomRight, TextDirection.rtl, const Rect.fromLTWH(792.0, 500.0, 0.0, 0.0));
-    await testPositioningDownThenUp(tester, TextDirection.ltr, Alignment.bottomLeft, TextDirection.ltr, const Rect.fromLTWH(8.0, 500.0, 0.0, 0.0));
-    await testPositioningDownThenUp(tester, TextDirection.rtl, Alignment.bottomLeft, TextDirection.ltr, const Rect.fromLTWH(8.0, 500.0, 0.0, 0.0));
-    await testPositioningDownThenUp(tester, TextDirection.ltr, Alignment.bottomCenter, TextDirection.ltr, const Rect.fromLTWH(350.0, 500.0, 0.0, 0.0));
-    await testPositioningDownThenUp(tester, TextDirection.rtl, Alignment.bottomCenter, TextDirection.rtl, const Rect.fromLTWH(450.0, 500.0, 0.0, 0.0));
+    await testPositioningDown(
+      tester,
+      TextDirection.ltr,
+      Alignment.topRight,
+      TextDirection.rtl,
+      const Rect.fromLTWH(792.0, 8.0, 0.0, 0.0),
+    );
+    await testPositioningDown(
+      tester,
+      TextDirection.rtl,
+      Alignment.topRight,
+      TextDirection.rtl,
+      const Rect.fromLTWH(792.0, 8.0, 0.0, 0.0),
+    );
+    await testPositioningDown(
+      tester,
+      TextDirection.ltr,
+      Alignment.topLeft,
+      TextDirection.ltr,
+      const Rect.fromLTWH(8.0, 8.0, 0.0, 0.0),
+    );
+    await testPositioningDown(
+      tester,
+      TextDirection.rtl,
+      Alignment.topLeft,
+      TextDirection.ltr,
+      const Rect.fromLTWH(8.0, 8.0, 0.0, 0.0),
+    );
+    await testPositioningDown(
+      tester,
+      TextDirection.ltr,
+      Alignment.topCenter,
+      TextDirection.ltr,
+      const Rect.fromLTWH(350.0, 8.0, 0.0, 0.0),
+    );
+    await testPositioningDown(
+      tester,
+      TextDirection.rtl,
+      Alignment.topCenter,
+      TextDirection.rtl,
+      const Rect.fromLTWH(450.0, 8.0, 0.0, 0.0),
+    );
+    await testPositioningDown(
+      tester,
+      TextDirection.ltr,
+      Alignment.centerRight,
+      TextDirection.rtl,
+      const Rect.fromLTWH(792.0, 250.0, 0.0, 0.0),
+    );
+    await testPositioningDown(
+      tester,
+      TextDirection.rtl,
+      Alignment.centerRight,
+      TextDirection.rtl,
+      const Rect.fromLTWH(792.0, 250.0, 0.0, 0.0),
+    );
+    await testPositioningDown(
+      tester,
+      TextDirection.ltr,
+      Alignment.centerLeft,
+      TextDirection.ltr,
+      const Rect.fromLTWH(8.0, 250.0, 0.0, 0.0),
+    );
+    await testPositioningDown(
+      tester,
+      TextDirection.rtl,
+      Alignment.centerLeft,
+      TextDirection.ltr,
+      const Rect.fromLTWH(8.0, 250.0, 0.0, 0.0),
+    );
+    await testPositioningDown(
+      tester,
+      TextDirection.ltr,
+      Alignment.center,
+      TextDirection.ltr,
+      const Rect.fromLTWH(350.0, 250.0, 0.0, 0.0),
+    );
+    await testPositioningDown(
+      tester,
+      TextDirection.rtl,
+      Alignment.center,
+      TextDirection.rtl,
+      const Rect.fromLTWH(450.0, 250.0, 0.0, 0.0),
+    );
+    await testPositioningDownThenUp(
+      tester,
+      TextDirection.ltr,
+      Alignment.bottomRight,
+      TextDirection.rtl,
+      const Rect.fromLTWH(792.0, 500.0, 0.0, 0.0),
+    );
+    await testPositioningDownThenUp(
+      tester,
+      TextDirection.rtl,
+      Alignment.bottomRight,
+      TextDirection.rtl,
+      const Rect.fromLTWH(792.0, 500.0, 0.0, 0.0),
+    );
+    await testPositioningDownThenUp(
+      tester,
+      TextDirection.ltr,
+      Alignment.bottomLeft,
+      TextDirection.ltr,
+      const Rect.fromLTWH(8.0, 500.0, 0.0, 0.0),
+    );
+    await testPositioningDownThenUp(
+      tester,
+      TextDirection.rtl,
+      Alignment.bottomLeft,
+      TextDirection.ltr,
+      const Rect.fromLTWH(8.0, 500.0, 0.0, 0.0),
+    );
+    await testPositioningDownThenUp(
+      tester,
+      TextDirection.ltr,
+      Alignment.bottomCenter,
+      TextDirection.ltr,
+      const Rect.fromLTWH(350.0, 500.0, 0.0, 0.0),
+    );
+    await testPositioningDownThenUp(
+      tester,
+      TextDirection.rtl,
+      Alignment.bottomCenter,
+      TextDirection.rtl,
+      const Rect.fromLTWH(450.0, 500.0, 0.0, 0.0),
+    );
   });
 
-  testWidgetsWithLeakTracking('PopupMenu positioning inside nested Overlay', (WidgetTester tester) async {
+  testWidgets('PopupMenu positioning inside nested Overlay', (WidgetTester tester) async {
     final Key buttonKey = UniqueKey();
     late final OverlayEntry entry;
-    addTearDown(() => entry..remove()..dispose());
+    addTearDown(
+      () => entry
+        ..remove()
+        ..dispose(),
+    );
 
     await tester.pumpWidget(
       MaterialApp(
@@ -883,7 +956,7 @@ void main() {
     expect(tester.getTopLeft(popupFinder), buttonTopLeft);
   });
 
-  testWidgetsWithLeakTracking('PopupMenu positioning inside nested Navigator', (WidgetTester tester) async {
+  testWidgets('PopupMenu positioning inside nested Navigator', (WidgetTester tester) async {
     final Key buttonKey = UniqueKey();
 
     await tester.pumpWidget(
@@ -927,7 +1000,88 @@ void main() {
     expect(tester.getTopLeft(popupFinder), buttonTopLeft);
   });
 
-  testWidgetsWithLeakTracking('PopupMenu positioning around display features', (WidgetTester tester) async {
+  testWidgets('PopupMenu positioning inside nested Navigator when useRootNavigator', (
+    WidgetTester tester,
+  ) async {
+    final Key buttonKey = UniqueKey();
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          appBar: AppBar(title: const Text('Example')),
+          body: Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Navigator(
+              onGenerateRoute: (RouteSettings settings) {
+                return MaterialPageRoute<dynamic>(
+                  builder: (BuildContext context) {
+                    return Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: Center(
+                        child: PopupMenuButton<int>(
+                          key: buttonKey,
+                          useRootNavigator: true,
+                          itemBuilder: (_) => <PopupMenuItem<int>>[
+                            const PopupMenuItem<int>(value: 1, child: Text('Item 1')),
+                            const PopupMenuItem<int>(value: 2, child: Text('Item 2')),
+                          ],
+                          child: const Text('Show Menu'),
+                        ),
+                      ),
+                    );
+                  },
+                );
+              },
+            ),
+          ),
+        ),
+      ),
+    );
+
+    final Finder buttonFinder = find.byKey(buttonKey);
+    final Finder popupFinder = find.bySemanticsLabel('Popup menu');
+    await tester.tap(buttonFinder);
+    await tester.pumpAndSettle();
+
+    final Offset buttonTopLeft = tester.getTopLeft(buttonFinder);
+    expect(tester.getTopLeft(popupFinder), buttonTopLeft);
+  });
+
+  testWidgets('Popup menu with RouteSettings', (WidgetTester tester) async {
+    final Key buttonKey = UniqueKey();
+    const RouteSettings popupRoute = RouteSettings(name: '/popup');
+    late RouteSettings currentRouteSetting;
+
+    await tester.pumpWidget(
+      MaterialApp(
+        navigatorObservers: <NavigatorObserver>[
+          _ClosureNavigatorObserver(
+            onDidChange: (Route<dynamic> newRoute) {
+              currentRouteSetting = newRoute.settings;
+            },
+          ),
+        ],
+        home: Scaffold(
+          body: PopupMenuButton<int>(
+            key: buttonKey,
+            routeSettings: popupRoute,
+            itemBuilder: (_) => <PopupMenuItem<int>>[
+              const PopupMenuItem<int>(value: 1, child: Text('Item 1')),
+              const PopupMenuItem<int>(value: 2, child: Text('Item 2')),
+            ],
+            child: const Text('Show Menu'),
+          ),
+        ),
+      ),
+    );
+
+    final Finder buttonFinder = find.byKey(buttonKey);
+    await tester.tap(buttonFinder);
+    await tester.pumpAndSettle();
+
+    expect(currentRouteSetting, popupRoute);
+  });
+
+  testWidgets('PopupMenu positioning around display features', (WidgetTester tester) async {
     final Key buttonKey = UniqueKey();
 
     await tester.pumpWidget(
@@ -953,7 +1107,7 @@ void main() {
                   builder: (BuildContext context) {
                     return Padding(
                       // Position the button in the top-right of the first "virtual screen"
-                      padding: const EdgeInsets.only(right:390.0),
+                      padding: const EdgeInsets.only(right: 390.0),
                       child: Align(
                         alignment: Alignment.topRight,
                         child: PopupMenuButton<int>(
@@ -987,39 +1141,35 @@ void main() {
     expect(tester.getTopRight(popupFinder), const Offset(390 - 8, 8));
   });
 
-  testWidgetsWithLeakTracking('PopupMenu removes MediaQuery padding', (WidgetTester tester) async {
+  testWidgets('PopupMenu removes MediaQuery padding', (WidgetTester tester) async {
     late BuildContext popupContext;
 
-    await tester.pumpWidget(MaterialApp(
-      home: MediaQuery(
-        data: const MediaQueryData(
-          padding: EdgeInsets.all(50.0),
-        ),
-        child: Material(
-          child: PopupMenuButton<int>(
-            itemBuilder: (BuildContext context) {
-              popupContext = context;
-              return <PopupMenuItem<int>>[
-                PopupMenuItem<int>(
-                  value: 1,
-                  child: Builder(
-                    builder: (BuildContext context) {
-                      popupContext = context;
-                      return const Text('AAA');
-                    },
+    await tester.pumpWidget(
+      MaterialApp(
+        home: MediaQuery(
+          data: const MediaQueryData(padding: EdgeInsets.all(50.0)),
+          child: Material(
+            child: PopupMenuButton<int>(
+              itemBuilder: (BuildContext context) {
+                popupContext = context;
+                return <PopupMenuItem<int>>[
+                  PopupMenuItem<int>(
+                    value: 1,
+                    child: Builder(
+                      builder: (BuildContext context) {
+                        popupContext = context;
+                        return const Text('AAA');
+                      },
+                    ),
                   ),
-                ),
-              ];
-            },
-            child: const SizedBox(
-              height: 100.0,
-              width: 100.0,
-              child: Text('XXX'),
+                ];
+              },
+              child: const SizedBox(height: 100.0, width: 100.0, child: Text('XXX')),
             ),
           ),
         ),
       ),
-    ));
+    );
 
     await tester.tap(find.text('XXX'));
 
@@ -1028,7 +1178,7 @@ void main() {
     expect(MediaQuery.of(popupContext).padding, EdgeInsets.zero);
   });
 
-  testWidgetsWithLeakTracking('Popup Menu Offset Test', (WidgetTester tester) async {
+  testWidgets('Popup Menu Offset Test', (WidgetTester tester) async {
     PopupMenuButton<int> buildMenuButton({Offset offset = Offset.zero}) {
       return PopupMenuButton<int>(
         offset: offset,
@@ -1050,11 +1200,7 @@ void main() {
     // Popup a menu without any offset.
     await tester.pumpWidget(
       MaterialApp(
-        home: Scaffold(
-          body: Material(
-            child: buildMenuButton(),
-          ),
-        ),
+        home: Scaffold(body: Material(child: buildMenuButton())),
       ),
     );
 
@@ -1063,7 +1209,12 @@ void main() {
     await tester.pumpAndSettle();
 
     // Initial state, the menu start at Offset(8.0, 8.0), the 8 pixels is edge padding when offset.dx < 8.0.
-    expect(tester.getTopLeft(find.byWidgetPredicate((Widget w) => '${w.runtimeType}' == '_PopupMenu<int?>')), const Offset(8.0, 8.0));
+    expect(
+      tester.getTopLeft(
+        find.byWidgetPredicate((Widget w) => '${w.runtimeType}' == '_PopupMenu<int?>'),
+      ),
+      const Offset(8.0, 8.0),
+    );
 
     // Collapse the menu.
     await tester.tap(find.byType(IconButton), warnIfMissed: false);
@@ -1073,9 +1224,7 @@ void main() {
     await tester.pumpWidget(
       MaterialApp(
         home: Scaffold(
-          body: Material(
-            child: buildMenuButton(offset: const Offset(50.0, 50.0)),
-          ),
+          body: Material(child: buildMenuButton(offset: const Offset(50.0, 50.0))),
         ),
       ),
     );
@@ -1084,10 +1233,15 @@ void main() {
     await tester.pumpAndSettle();
 
     // This time the menu should start at Offset(50.0, 50.0), the padding only added when offset.dx < 8.0.
-    expect(tester.getTopLeft(find.byWidgetPredicate((Widget w) => '${w.runtimeType}' == '_PopupMenu<int?>')), const Offset(50.0, 50.0));
+    expect(
+      tester.getTopLeft(
+        find.byWidgetPredicate((Widget w) => '${w.runtimeType}' == '_PopupMenu<int?>'),
+      ),
+      const Offset(50.0, 50.0),
+    );
   });
 
-  testWidgetsWithLeakTracking('Opened PopupMenu has correct semantics', (WidgetTester tester) async {
+  testWidgets('Opened PopupMenu has correct semantics', (WidgetTester tester) async {
     final SemanticsTester semantics = SemanticsTester(tester);
     await tester.pumpWidget(
       MaterialApp(
@@ -1102,11 +1256,7 @@ void main() {
                 const PopupMenuItem<int>(value: 5, child: Text('5')),
               ];
             },
-            child: const SizedBox(
-              height: 100.0,
-              width: 100.0,
-              child: Text('XXX'),
-            ),
+            child: const SizedBox(height: 100.0, width: 100.0, child: Text('XXX')),
           ),
         ),
       ),
@@ -1114,104 +1264,125 @@ void main() {
     await tester.tap(find.text('XXX'));
     await tester.pumpAndSettle();
 
-    expect(semantics, hasSemantics(
-      TestSemantics.root(
-        children: <TestSemantics>[
-          TestSemantics(
-            textDirection: TextDirection.ltr,
-            children: <TestSemantics>[
-              TestSemantics(
-                children: <TestSemantics>[
-                  TestSemantics(
-                    flags: <SemanticsFlag>[
-                      SemanticsFlag.scopesRoute,
-                      SemanticsFlag.namesRoute,
-                    ],
-                    label: 'Popup menu',
-                    textDirection: TextDirection.ltr,
-                    children: <TestSemantics>[
-                      TestSemantics(
-                        flags: <SemanticsFlag>[
-                          SemanticsFlag.hasImplicitScrolling,
-                        ],
-                        children: <TestSemantics>[
-                          TestSemantics(
-                            flags: <SemanticsFlag>[
-                              SemanticsFlag.isButton,
-                              SemanticsFlag.hasEnabledState,
-                              SemanticsFlag.isEnabled,
-                              SemanticsFlag.isFocusable,
-                            ],
-                            actions: <SemanticsAction>[SemanticsAction.tap],
-                            label: '1',
-                            textDirection: TextDirection.ltr,
-                          ),
-                          TestSemantics(
-                            flags: <SemanticsFlag>[
-                              SemanticsFlag.isButton,
-                              SemanticsFlag.hasEnabledState,
-                              SemanticsFlag.isEnabled,
-                              SemanticsFlag.isFocusable,
-                            ],
-                            actions: <SemanticsAction>[SemanticsAction.tap],
-                            label: '2',
-                            textDirection: TextDirection.ltr,
-                          ),
-                          TestSemantics(
-                            flags: <SemanticsFlag>[
-                              SemanticsFlag.isButton,
-                              SemanticsFlag.hasEnabledState,
-                              SemanticsFlag.isEnabled,
-                              SemanticsFlag.isFocusable,
-                            ],
-                            actions: <SemanticsAction>[SemanticsAction.tap],
-                            label: '3',
-                            textDirection: TextDirection.ltr,
-                          ),
-                          TestSemantics(
-                            flags: <SemanticsFlag>[
-                              SemanticsFlag.isButton,
-                              SemanticsFlag.hasEnabledState,
-                              SemanticsFlag.isEnabled,
-                              SemanticsFlag.isFocusable,
-                            ],
-                            actions: <SemanticsAction>[SemanticsAction.tap],
-                            label: '4',
-                            textDirection: TextDirection.ltr,
-                          ),
-                          TestSemantics(
-                            flags: <SemanticsFlag>[
-                              SemanticsFlag.isButton,
-                              SemanticsFlag.hasEnabledState,
-                              SemanticsFlag.isEnabled,
-                              SemanticsFlag.isFocusable,
-                            ],
-                            actions: <SemanticsAction>[SemanticsAction.tap],
-                            label: '5',
-                            textDirection: TextDirection.ltr,
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-              TestSemantics(
+    expect(
+      semantics,
+      hasSemantics(
+        TestSemantics.root(
+          children: <TestSemantics>[
+            TestSemantics(
+              textDirection: TextDirection.ltr,
+              children: <TestSemantics>[
+                TestSemantics(
+                  children: <TestSemantics>[
+                    TestSemantics(
+                      role: SemanticsRole.menu,
+                      flags: <SemanticsFlag>[SemanticsFlag.scopesRoute, SemanticsFlag.namesRoute],
+                      label: 'Popup menu',
+                      textDirection: TextDirection.ltr,
+                      children: <TestSemantics>[
+                        TestSemantics(
+                          flags: <SemanticsFlag>[SemanticsFlag.hasImplicitScrolling],
+                          children: <TestSemantics>[
+                            TestSemantics(
+                              role: SemanticsRole.menuItem,
+                              flags: <SemanticsFlag>[
+                                SemanticsFlag.isButton,
+                                SemanticsFlag.hasEnabledState,
+                                SemanticsFlag.isEnabled,
+                                SemanticsFlag.isFocusable,
+                              ],
+                              actions: <SemanticsAction>[
+                                SemanticsAction.tap,
+                                SemanticsAction.focus,
+                              ],
+                              label: '1',
+                              textDirection: TextDirection.ltr,
+                            ),
+                            TestSemantics(
+                              role: SemanticsRole.menuItem,
+                              flags: <SemanticsFlag>[
+                                SemanticsFlag.isButton,
+                                SemanticsFlag.hasEnabledState,
+                                SemanticsFlag.isEnabled,
+                                SemanticsFlag.isFocusable,
+                              ],
+                              actions: <SemanticsAction>[
+                                SemanticsAction.tap,
+                                SemanticsAction.focus,
+                              ],
+                              label: '2',
+                              textDirection: TextDirection.ltr,
+                            ),
+                            TestSemantics(
+                              role: SemanticsRole.menuItem,
+                              flags: <SemanticsFlag>[
+                                SemanticsFlag.isButton,
+                                SemanticsFlag.hasEnabledState,
+                                SemanticsFlag.isEnabled,
+                                SemanticsFlag.isFocusable,
+                              ],
+                              actions: <SemanticsAction>[
+                                SemanticsAction.tap,
+                                SemanticsAction.focus,
+                              ],
+                              label: '3',
+                              textDirection: TextDirection.ltr,
+                            ),
+                            TestSemantics(
+                              role: SemanticsRole.menuItem,
+                              flags: <SemanticsFlag>[
+                                SemanticsFlag.isButton,
+                                SemanticsFlag.hasEnabledState,
+                                SemanticsFlag.isEnabled,
+                                SemanticsFlag.isFocusable,
+                              ],
+                              actions: <SemanticsAction>[
+                                SemanticsAction.tap,
+                                SemanticsAction.focus,
+                              ],
+                              label: '4',
+                              textDirection: TextDirection.ltr,
+                            ),
+                            TestSemantics(
+                              role: SemanticsRole.menuItem,
+                              flags: <SemanticsFlag>[
+                                SemanticsFlag.isButton,
+                                SemanticsFlag.hasEnabledState,
+                                SemanticsFlag.isEnabled,
+                                SemanticsFlag.isFocusable,
+                              ],
+                              actions: <SemanticsAction>[
+                                SemanticsAction.tap,
+                                SemanticsAction.focus,
+                              ],
+                              label: '5',
+                              textDirection: TextDirection.ltr,
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+                TestSemantics(
                   actions: <SemanticsAction>[SemanticsAction.tap, SemanticsAction.dismiss],
                   label: 'Dismiss menu',
                   textDirection: TextDirection.ltr,
-              ),
-            ],
-          ),
-        ],
+                ),
+              ],
+            ),
+          ],
+        ),
+        ignoreId: true,
+        ignoreTransform: true,
+        ignoreRect: true,
       ),
-      ignoreId: true, ignoreTransform: true, ignoreRect: true,
-    ));
+    );
 
     semantics.dispose();
   });
 
-  testWidgetsWithLeakTracking('PopupMenuItem merges the semantics of its descendants', (WidgetTester tester) async {
+  testWidgets('PopupMenuItem merges the semantics of its descendants', (WidgetTester tester) async {
     final SemanticsTester semantics = SemanticsTester(tester);
     await tester.pumpWidget(
       MaterialApp(
@@ -1223,22 +1394,14 @@ void main() {
                   value: 1,
                   child: Row(
                     children: <Widget>[
-                      Semantics(
-                        child: const Text('test1'),
-                      ),
-                      Semantics(
-                        child: const Text('test2'),
-                      ),
+                      Semantics(child: const Text('test1')),
+                      Semantics(child: const Text('test2')),
                     ],
                   ),
                 ),
               ];
             },
-            child: const SizedBox(
-              height: 100.0,
-              width: 100.0,
-              child: Text('XXX'),
-            ),
+            child: const SizedBox(height: 100.0, width: 100.0, child: Text('XXX')),
           ),
         ),
       ),
@@ -1246,60 +1409,65 @@ void main() {
     await tester.tap(find.text('XXX'));
     await tester.pumpAndSettle();
 
-    expect(semantics, hasSemantics(
-      TestSemantics.root(
-        children: <TestSemantics>[
-          TestSemantics(
-            textDirection: TextDirection.ltr,
-            children: <TestSemantics>[
-              TestSemantics(
-                children: <TestSemantics>[
-                  TestSemantics(
-                    flags: <SemanticsFlag>[
-                      SemanticsFlag.scopesRoute,
-                      SemanticsFlag.namesRoute,
-                    ],
-                    label: 'Popup menu',
-                    textDirection: TextDirection.ltr,
-                    children: <TestSemantics>[
-                      TestSemantics(
-                        flags: <SemanticsFlag>[
-                          SemanticsFlag.hasImplicitScrolling,
-                        ],
-                        children: <TestSemantics>[
-                          TestSemantics(
-                            flags: <SemanticsFlag>[
-                              SemanticsFlag.isButton,
-                              SemanticsFlag.hasEnabledState,
-                              SemanticsFlag.isEnabled,
-                              SemanticsFlag.isFocusable,
-                            ],
-                            actions: <SemanticsAction>[SemanticsAction.tap],
-                            label: 'test1\ntest2',
-                            textDirection: TextDirection.ltr,
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-              TestSemantics(
+    expect(
+      semantics,
+      hasSemantics(
+        TestSemantics.root(
+          children: <TestSemantics>[
+            TestSemantics(
+              textDirection: TextDirection.ltr,
+              children: <TestSemantics>[
+                TestSemantics(
+                  children: <TestSemantics>[
+                    TestSemantics(
+                      role: SemanticsRole.menu,
+                      flags: <SemanticsFlag>[SemanticsFlag.scopesRoute, SemanticsFlag.namesRoute],
+                      label: 'Popup menu',
+                      textDirection: TextDirection.ltr,
+                      children: <TestSemantics>[
+                        TestSemantics(
+                          flags: <SemanticsFlag>[SemanticsFlag.hasImplicitScrolling],
+                          children: <TestSemantics>[
+                            TestSemantics(
+                              role: SemanticsRole.menuItem,
+                              flags: <SemanticsFlag>[
+                                SemanticsFlag.isButton,
+                                SemanticsFlag.hasEnabledState,
+                                SemanticsFlag.isEnabled,
+                                SemanticsFlag.isFocusable,
+                              ],
+                              actions: <SemanticsAction>[
+                                SemanticsAction.tap,
+                                SemanticsAction.focus,
+                              ],
+                              label: 'test1\ntest2',
+                              textDirection: TextDirection.ltr,
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+                TestSemantics(
                   actions: <SemanticsAction>[SemanticsAction.tap, SemanticsAction.dismiss],
                   label: 'Dismiss menu',
                   textDirection: TextDirection.ltr,
-              ),
-            ],
-          ),
-        ],
+                ),
+              ],
+            ),
+          ],
+        ),
+        ignoreId: true,
+        ignoreTransform: true,
+        ignoreRect: true,
       ),
-      ignoreId: true, ignoreTransform: true, ignoreRect: true,
-    ));
+    );
 
     semantics.dispose();
   });
 
-  testWidgetsWithLeakTracking('Disabled PopupMenuItem has correct semantics', (WidgetTester tester) async {
+  testWidgets('Disabled PopupMenuItem has correct semantics', (WidgetTester tester) async {
     // Regression test for https://github.com/flutter/flutter/issues/45044.
     final SemanticsTester semantics = SemanticsTester(tester);
     await tester.pumpWidget(
@@ -1309,17 +1477,13 @@ void main() {
             itemBuilder: (BuildContext context) {
               return <PopupMenuItem<int>>[
                 const PopupMenuItem<int>(value: 1, child: Text('1')),
-                const PopupMenuItem<int>(value: 2, enabled: false ,child: Text('2')),
+                const PopupMenuItem<int>(value: 2, enabled: false, child: Text('2')),
                 const PopupMenuItem<int>(value: 3, child: Text('3')),
                 const PopupMenuItem<int>(value: 4, child: Text('4')),
                 const PopupMenuItem<int>(value: 5, child: Text('5')),
               ];
             },
-            child: const SizedBox(
-              height: 100.0,
-              width: 100.0,
-              child: Text('XXX'),
-            ),
+            child: const SizedBox(height: 100.0, width: 100.0, child: Text('XXX')),
           ),
         ),
       ),
@@ -1327,102 +1491,173 @@ void main() {
     await tester.tap(find.text('XXX'));
     await tester.pumpAndSettle();
 
-    expect(semantics, hasSemantics(
-      TestSemantics.root(
-        children: <TestSemantics>[
-          TestSemantics(
-            textDirection: TextDirection.ltr,
-            children: <TestSemantics>[
-              TestSemantics(
-                children: <TestSemantics>[
-                  TestSemantics(
-                    flags: <SemanticsFlag>[
-                      SemanticsFlag.scopesRoute,
-                      SemanticsFlag.namesRoute,
-                    ],
-                    label: 'Popup menu',
-                    textDirection: TextDirection.ltr,
-                    children: <TestSemantics>[
-                      TestSemantics(
-                        flags: <SemanticsFlag>[
-                          SemanticsFlag.hasImplicitScrolling,
-                        ],
-                        children: <TestSemantics>[
-                          TestSemantics(
-                            flags: <SemanticsFlag>[
-                              SemanticsFlag.isButton,
-                              SemanticsFlag.hasEnabledState,
-                              SemanticsFlag.isEnabled,
-                              SemanticsFlag.isFocusable,
-                            ],
-                            actions: <SemanticsAction>[SemanticsAction.tap],
-                            label: '1',
-                            textDirection: TextDirection.ltr,
-                          ),
-                          TestSemantics(
-                            flags: <SemanticsFlag>[
-                              SemanticsFlag.isButton,
-                              SemanticsFlag.hasEnabledState,
-                            ],
-                            actions: <SemanticsAction>[],
-                            label: '2',
-                            textDirection: TextDirection.ltr,
-                          ),
-                          TestSemantics(
-                            flags: <SemanticsFlag>[
-                              SemanticsFlag.isButton,
-                              SemanticsFlag.hasEnabledState,
-                              SemanticsFlag.isEnabled,
-                              SemanticsFlag.isFocusable,
-                            ],
-                            actions: <SemanticsAction>[SemanticsAction.tap],
-                            label: '3',
-                            textDirection: TextDirection.ltr,
-                          ),
-                          TestSemantics(
-                            flags: <SemanticsFlag>[
-                              SemanticsFlag.isButton,
-                              SemanticsFlag.hasEnabledState,
-                              SemanticsFlag.isEnabled,
-                              SemanticsFlag.isFocusable,
-                            ],
-                            actions: <SemanticsAction>[SemanticsAction.tap],
-                            label: '4',
-                            textDirection: TextDirection.ltr,
-                          ),
-                          TestSemantics(
-                            flags: <SemanticsFlag>[
-                              SemanticsFlag.isButton,
-                              SemanticsFlag.hasEnabledState,
-                              SemanticsFlag.isEnabled,
-                              SemanticsFlag.isFocusable,
-                            ],
-                            actions: <SemanticsAction>[SemanticsAction.tap],
-                            label: '5',
-                            textDirection: TextDirection.ltr,
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-              TestSemantics(
+    expect(
+      semantics,
+      hasSemantics(
+        TestSemantics.root(
+          children: <TestSemantics>[
+            TestSemantics(
+              textDirection: TextDirection.ltr,
+              children: <TestSemantics>[
+                TestSemantics(
+                  children: <TestSemantics>[
+                    TestSemantics(
+                      role: SemanticsRole.menu,
+                      flags: <SemanticsFlag>[SemanticsFlag.scopesRoute, SemanticsFlag.namesRoute],
+                      label: 'Popup menu',
+                      textDirection: TextDirection.ltr,
+                      children: <TestSemantics>[
+                        TestSemantics(
+                          flags: <SemanticsFlag>[SemanticsFlag.hasImplicitScrolling],
+                          children: <TestSemantics>[
+                            TestSemantics(
+                              role: SemanticsRole.menuItem,
+                              flags: <SemanticsFlag>[
+                                SemanticsFlag.isButton,
+                                SemanticsFlag.hasEnabledState,
+                                SemanticsFlag.isEnabled,
+                                SemanticsFlag.isFocusable,
+                              ],
+                              actions: <SemanticsAction>[
+                                SemanticsAction.tap,
+                                SemanticsAction.focus,
+                              ],
+                              label: '1',
+                              textDirection: TextDirection.ltr,
+                            ),
+                            TestSemantics(
+                              role: SemanticsRole.menuItem,
+                              flags: <SemanticsFlag>[
+                                SemanticsFlag.isButton,
+                                SemanticsFlag.hasEnabledState,
+                              ],
+                              actions: <SemanticsAction>[],
+                              label: '2',
+                              textDirection: TextDirection.ltr,
+                            ),
+                            TestSemantics(
+                              role: SemanticsRole.menuItem,
+                              flags: <SemanticsFlag>[
+                                SemanticsFlag.isButton,
+                                SemanticsFlag.hasEnabledState,
+                                SemanticsFlag.isEnabled,
+                                SemanticsFlag.isFocusable,
+                              ],
+                              actions: <SemanticsAction>[
+                                SemanticsAction.tap,
+                                SemanticsAction.focus,
+                              ],
+                              label: '3',
+                              textDirection: TextDirection.ltr,
+                            ),
+                            TestSemantics(
+                              role: SemanticsRole.menuItem,
+                              flags: <SemanticsFlag>[
+                                SemanticsFlag.isButton,
+                                SemanticsFlag.hasEnabledState,
+                                SemanticsFlag.isEnabled,
+                                SemanticsFlag.isFocusable,
+                              ],
+                              actions: <SemanticsAction>[
+                                SemanticsAction.tap,
+                                SemanticsAction.focus,
+                              ],
+                              label: '4',
+                              textDirection: TextDirection.ltr,
+                            ),
+                            TestSemantics(
+                              role: SemanticsRole.menuItem,
+                              flags: <SemanticsFlag>[
+                                SemanticsFlag.isButton,
+                                SemanticsFlag.hasEnabledState,
+                                SemanticsFlag.isEnabled,
+                                SemanticsFlag.isFocusable,
+                              ],
+                              actions: <SemanticsAction>[
+                                SemanticsAction.tap,
+                                SemanticsAction.focus,
+                              ],
+                              label: '5',
+                              textDirection: TextDirection.ltr,
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+                TestSemantics(
                   actions: <SemanticsAction>[SemanticsAction.tap, SemanticsAction.dismiss],
                   label: 'Dismiss menu',
                   textDirection: TextDirection.ltr,
-              ),
-            ],
-          ),
-        ],
+                ),
+              ],
+            ),
+          ],
+        ),
+        ignoreId: true,
+        ignoreTransform: true,
+        ignoreRect: true,
       ),
-      ignoreId: true, ignoreTransform: true, ignoreRect: true,
-    ));
+    );
 
     semantics.dispose();
   });
 
-  testWidgetsWithLeakTracking('PopupMenuButton PopupMenuDivider', (WidgetTester tester) async {
+  testWidgets('CheckedPopupMenuItem has correct semantics', (WidgetTester tester) async {
+    final SemanticsTester semantics = SemanticsTester(tester);
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Material(
+          child: PopupMenuButton<int>(
+            itemBuilder: (BuildContext context) {
+              return <PopupMenuEntry<int>>[
+                const CheckedPopupMenuItem<int>(
+                  value: 1,
+                  checked: true,
+                  child: Text('Checked Item'),
+                ),
+                const CheckedPopupMenuItem<int>(value: 2, child: Text('Unchecked Item')),
+              ];
+            },
+            child: const SizedBox(height: 100.0, width: 100.0, child: Text('XXX')),
+          ),
+        ),
+      ),
+    );
+    await tester.tap(find.text('XXX'));
+    await tester.pumpAndSettle();
+
+    // Verify that CheckedPopupMenuItem uses SemanticsRole.menuItemCheckbox
+    final Iterable<SemanticsNode> allNodes = semantics.nodesWith();
+    final List<SemanticsNode> menuItemNodes = allNodes
+        .where(
+          (SemanticsNode node) => node.getSemanticsData().role == SemanticsRole.menuItemCheckbox,
+        )
+        .toList();
+    expect(menuItemNodes, hasLength(2));
+
+    // Verify that the checked item has the correct properties
+    final SemanticsNode checkedNode = menuItemNodes.firstWhere(
+      (SemanticsNode node) => node.getSemanticsData().hasFlag(SemanticsFlag.isChecked),
+    );
+    expect(checkedNode.getSemanticsData().role, SemanticsRole.menuItemCheckbox);
+    expect(checkedNode.getSemanticsData().hasFlag(SemanticsFlag.isButton), isTrue);
+    expect(checkedNode.getSemanticsData().hasFlag(SemanticsFlag.hasCheckedState), isTrue);
+
+    // Verify that the unchecked item has the correct properties
+    final SemanticsNode uncheckedNode = menuItemNodes.firstWhere(
+      (SemanticsNode node) => !node.getSemanticsData().hasFlag(SemanticsFlag.isChecked),
+    );
+    expect(uncheckedNode.getSemanticsData().role, SemanticsRole.menuItemCheckbox);
+    expect(uncheckedNode.getSemanticsData().hasFlag(SemanticsFlag.isButton), isTrue);
+    expect(uncheckedNode.getSemanticsData().hasFlag(SemanticsFlag.hasCheckedState), isTrue);
+    expect(uncheckedNode.getSemanticsData().hasFlag(SemanticsFlag.isChecked), isFalse);
+
+    semantics.dispose();
+  });
+
+  testWidgets('PopupMenuButton PopupMenuDivider', (WidgetTester tester) async {
     // Regression test for https://github.com/flutter/flutter/issues/27072
 
     late String selectedValue;
@@ -1437,15 +1672,9 @@ void main() {
               initialValue: '1',
               child: const Text('Menu Button'),
               itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
-                const PopupMenuItem<String>(
-                  value: '1',
-                  child: Text('1'),
-                ),
+                const PopupMenuItem<String>(value: '1', child: Text('1')),
                 const PopupMenuDivider(),
-                const PopupMenuItem<String>(
-                  value: '2',
-                  child: Text('2'),
-                ),
+                const PopupMenuItem<String>(value: '2', child: Text('2')),
               ],
             ),
           ),
@@ -1474,7 +1703,9 @@ void main() {
     expect(selectedValue, '2');
   });
 
-  testWidgetsWithLeakTracking('PopupMenuItem child height is a minimum, child is vertically centered', (WidgetTester tester) async {
+  testWidgets('PopupMenuItem child height is a minimum, child is vertically centered', (
+    WidgetTester tester,
+  ) async {
     final Key popupMenuButtonKey = UniqueKey();
     final Type menuItemType = const PopupMenuItem<String>(child: Text('item')).runtimeType;
 
@@ -1485,42 +1716,31 @@ void main() {
             child: PopupMenuButton<String>(
               key: popupMenuButtonKey,
               child: const Text('button'),
-              onSelected: (String result) { },
+              onSelected: (String result) {},
               itemBuilder: (BuildContext context) {
                 return <PopupMenuEntry<String>>[
                   // This menu item's height will be 48 because the default minimum height
                   // is 48 and the height of the text is less than 48.
-                  const PopupMenuItem<String>(
-                    value: '0',
-                    child: Text('Item 0'),
-                  ),
+                  const PopupMenuItem<String>(value: '0', child: Text('Item 0')),
                   // This menu item's height parameter specifies its minimum height. The
                   // overall height of the menu item will be 50 because the child's
                   // height 40, is less than 50.
                   const PopupMenuItem<String>(
                     height: 50,
                     value: '1',
-                    child: SizedBox(
-                      height: 40,
-                      child: Text('Item 1'),
-                    ),
+                    child: SizedBox(height: 40, child: Text('Item 1')),
                   ),
                   // This menu item's height parameter specifies its minimum height, so the
                   // overall height of the menu item will be 75.
                   const PopupMenuItem<String>(
                     height: 75,
                     value: '2',
-                    child: SizedBox(
-                      child: Text('Item 2'),
-                    ),
+                    child: SizedBox(child: Text('Item 2')),
                   ),
                   // This menu item's height will be 100.
                   const PopupMenuItem<String>(
                     value: '3',
-                    child: SizedBox(
-                      height: 100,
-                      child: Text('Item 3'),
-                    ),
+                    child: SizedBox(height: 100, child: Text('Item 3')),
                   ),
                 ];
               },
@@ -1556,28 +1776,21 @@ void main() {
     );
   });
 
-  testWidgetsWithLeakTracking('Material3 - PopupMenuItem default padding', (WidgetTester tester) async {
+  testWidgets('Material3 - PopupMenuItem default padding', (WidgetTester tester) async {
     final Key popupMenuButtonKey = UniqueKey();
     await tester.pumpWidget(
       MaterialApp(
-        theme: ThemeData(useMaterial3: true),
+        theme: ThemeData(),
         home: Scaffold(
           body: Center(
             child: PopupMenuButton<String>(
               key: popupMenuButtonKey,
               child: const Text('button'),
-              onSelected: (String result) { },
+              onSelected: (String result) {},
               itemBuilder: (BuildContext context) {
                 return <PopupMenuEntry<String>>[
-                   const PopupMenuItem<String>(
-                    value: '0',
-                    enabled: false,
-                    child: Text('Item 0'),
-                  ),
-                  const PopupMenuItem<String>(
-                    value: '1',
-                    child: Text('Item 1'),
-                  ),
+                  const PopupMenuItem<String>(value: '0', enabled: false, child: Text('Item 0')),
+                  const PopupMenuItem<String>(value: '1', child: Text('Item 1')),
                 ];
               },
             ),
@@ -1590,11 +1803,48 @@ void main() {
     await tester.tap(find.byKey(popupMenuButtonKey));
     await tester.pumpAndSettle();
 
-    expect(tester.widget<Container>(find.widgetWithText(Container, 'Item 0')).padding, const EdgeInsets.symmetric(horizontal: 12.0));
-    expect(tester.widget<Container>(find.widgetWithText(Container, 'Item 1')).padding, const EdgeInsets.symmetric(horizontal: 12.0));
+    EdgeInsetsGeometry paddingFor(String text) {
+      return tester.widget<Padding>(find.widgetWithText(Padding, 'Item 0').first).padding;
+    }
+
+    expect(paddingFor('Item 0'), const EdgeInsets.symmetric(horizontal: 12.0));
+    expect(paddingFor('Item 1'), const EdgeInsets.symmetric(horizontal: 12.0));
   });
 
-  testWidgetsWithLeakTracking('Material2 - PopupMenuItem default padding', (WidgetTester tester) async {
+  testWidgets('PopupMenu default padding', (WidgetTester tester) async {
+    final Key popupMenuButtonKey = UniqueKey();
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: Center(
+            child: PopupMenuButton<String>(
+              key: popupMenuButtonKey,
+              child: const Text('button'),
+              onSelected: (String result) {},
+              itemBuilder: (BuildContext context) {
+                return <PopupMenuEntry<String>>[
+                  const PopupMenuItem<String>(value: '0', enabled: false, child: Text('Item 0')),
+                  const PopupMenuItem<String>(value: '1', child: Text('Item 1')),
+                ];
+              },
+            ),
+          ),
+        ),
+      ),
+    );
+
+    // Show the menu.
+    await tester.tap(find.byKey(popupMenuButtonKey));
+    await tester.pump(const Duration(milliseconds: 300));
+
+    // Check popup menu padding.
+    final SingleChildScrollView popupMenu = tester.widget<SingleChildScrollView>(
+      find.byType(SingleChildScrollView),
+    );
+    expect(popupMenu.padding, const EdgeInsets.symmetric(vertical: 8.0));
+  });
+
+  testWidgets('Material2 - PopupMenuItem default padding', (WidgetTester tester) async {
     final Key popupMenuButtonKey = UniqueKey();
     await tester.pumpWidget(
       MaterialApp(
@@ -1604,18 +1854,11 @@ void main() {
             child: PopupMenuButton<String>(
               key: popupMenuButtonKey,
               child: const Text('button'),
-              onSelected: (String result) { },
+              onSelected: (String result) {},
               itemBuilder: (BuildContext context) {
                 return <PopupMenuEntry<String>>[
-                   const PopupMenuItem<String>(
-                    value: '0',
-                    enabled: false,
-                    child: Text('Item 0'),
-                  ),
-                  const PopupMenuItem<String>(
-                    value: '1',
-                    child: Text('Item 1'),
-                  ),
+                  const PopupMenuItem<String>(value: '0', enabled: false, child: Text('Item 0')),
+                  const PopupMenuItem<String>(value: '1', child: Text('Item 1')),
                 ];
               },
             ),
@@ -1628,11 +1871,49 @@ void main() {
     await tester.tap(find.byKey(popupMenuButtonKey));
     await tester.pumpAndSettle();
 
-    expect(tester.widget<Container>(find.widgetWithText(Container, 'Item 0')).padding, const EdgeInsets.symmetric(horizontal: 16.0));
-    expect(tester.widget<Container>(find.widgetWithText(Container, 'Item 1')).padding, const EdgeInsets.symmetric(horizontal: 16.0));
+    EdgeInsetsGeometry paddingFor(String text) {
+      return tester.widget<Padding>(find.widgetWithText(Padding, 'Item 0').first).padding;
+    }
+
+    expect(paddingFor('Item 0'), const EdgeInsets.symmetric(horizontal: 16.0));
+    expect(paddingFor('Item 1'), const EdgeInsets.symmetric(horizontal: 16.0));
   });
 
-  testWidgetsWithLeakTracking('PopupMenuItem custom padding', (WidgetTester tester) async {
+  testWidgets('Material2 - PopupMenuItem default padding', (WidgetTester tester) async {
+    final Key popupMenuButtonKey = UniqueKey();
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: ThemeData(useMaterial3: false),
+        home: Scaffold(
+          body: Center(
+            child: PopupMenuButton<String>(
+              key: popupMenuButtonKey,
+              child: const Text('button'),
+              onSelected: (String result) {},
+              itemBuilder: (BuildContext context) {
+                return <PopupMenuEntry<String>>[
+                  const PopupMenuItem<String>(value: '0', enabled: false, child: Text('Item 0')),
+                  const PopupMenuItem<String>(value: '1', child: Text('Item 1')),
+                ];
+              },
+            ),
+          ),
+        ),
+      ),
+    );
+
+    // Show the menu.
+    await tester.tap(find.byKey(popupMenuButtonKey));
+    await tester.pump(const Duration(milliseconds: 300));
+
+    // Check popup menu padding.
+    final SingleChildScrollView popupMenu = tester.widget<SingleChildScrollView>(
+      find.byType(SingleChildScrollView),
+    );
+    expect(popupMenu.padding, const EdgeInsets.symmetric(vertical: 8.0));
+  });
+
+  testWidgets('PopupMenuItem custom padding', (WidgetTester tester) async {
     final Key popupMenuButtonKey = UniqueKey();
     final Type menuItemType = const PopupMenuItem<String>(child: Text('item')).runtimeType;
 
@@ -1644,7 +1925,7 @@ void main() {
             child: PopupMenuButton<String>(
               key: popupMenuButtonKey,
               child: const Text('button'),
-              onSelected: (String result) { },
+              onSelected: (String result) {},
               itemBuilder: (BuildContext context) {
                 return <PopupMenuEntry<String>>[
                   const PopupMenuItem<String>(
@@ -1683,18 +1964,44 @@ void main() {
 
     // The menu items and their InkWells should have the expected vertical size
     // given the interactions between heights and padding.
-    expect(tester.getSize(find.widgetWithText(menuItemType, 'Item 0')).height, 48); // Minimum interactive height (48)
-    expect(tester.getSize(find.widgetWithText(menuItemType, 'Item 1')).height, 16); // Height of text (16)
-    expect(tester.getSize(find.widgetWithText(menuItemType, 'Item 2')).height, 56); // Padding (20.0 + 20.0) + Height of text (16) = 56
-    expect(tester.getSize(find.widgetWithText(menuItemType, 'Item 3')).height, 100); // Height value of 100, since child (16) + padding (40) < 100
+    expect(
+      tester.getSize(find.widgetWithText(menuItemType, 'Item 0')).height,
+      48,
+    ); // Minimum interactive height (48)
+    expect(
+      tester.getSize(find.widgetWithText(menuItemType, 'Item 1')).height,
+      16,
+    ); // Height of text (16)
+    expect(
+      tester.getSize(find.widgetWithText(menuItemType, 'Item 2')).height,
+      56,
+    ); // Padding (20.0 + 20.0) + Height of text (16) = 56
+    expect(
+      tester.getSize(find.widgetWithText(menuItemType, 'Item 3')).height,
+      100,
+    ); // Height value of 100, since child (16) + padding (40) < 100
 
-    expect(tester.widget<Container>(find.widgetWithText(Container, 'Item 0')).padding, EdgeInsets.zero);
-    expect(tester.widget<Container>(find.widgetWithText(Container, 'Item 1')).padding, EdgeInsets.zero);
-    expect(tester.widget<Container>(find.widgetWithText(Container, 'Item 2')).padding, const EdgeInsets.all(20));
-    expect(tester.widget<Container>(find.widgetWithText(Container, 'Item 3')).padding, const EdgeInsets.all(20));
+    EdgeInsetsGeometry paddingFor(String text) {
+      final ConstrainedBox widget = tester.widget<ConstrainedBox>(
+        find.ancestor(
+          of: find.text(text),
+          matching: find.byWidgetPredicate(
+            (Widget widget) => widget is ConstrainedBox && widget.child is Padding,
+          ),
+        ),
+      );
+      return (widget.child! as Padding).padding;
+    }
+
+    expect(paddingFor('Item 0'), EdgeInsets.zero);
+    expect(paddingFor('Item 1'), EdgeInsets.zero);
+    expect(paddingFor('Item 2'), const EdgeInsets.all(20));
+    expect(paddingFor('Item 3'), const EdgeInsets.all(20));
   });
 
-  testWidgetsWithLeakTracking('CheckedPopupMenuItem child height is a minimum, child is vertically centered', (WidgetTester tester) async {
+  testWidgets('CheckedPopupMenuItem child height is a minimum, child is vertically centered', (
+    WidgetTester tester,
+  ) async {
     final Key popupMenuButtonKey = UniqueKey();
     final Type menuItemType = const CheckedPopupMenuItem<String>(child: Text('item')).runtimeType;
 
@@ -1705,7 +2012,7 @@ void main() {
             child: PopupMenuButton<String>(
               key: popupMenuButtonKey,
               child: const Text('button'),
-              onSelected: (String result) { },
+              onSelected: (String result) {},
               itemBuilder: (BuildContext context) {
                 return <PopupMenuEntry<String>>[
                   // This menu item's height will be 56.0 because the default minimum height
@@ -1722,10 +2029,7 @@ void main() {
                     checked: true,
                     height: 60,
                     value: '1',
-                    child: SizedBox(
-                      height: 40,
-                      child: Text('Item 1'),
-                    ),
+                    child: SizedBox(height: 40, child: Text('Item 1')),
                   ),
                   // This menu item's height parameter specifies its minimum height, so the
                   // overall height of the menu item will be 75.
@@ -1733,18 +2037,14 @@ void main() {
                     checked: true,
                     height: 75,
                     value: '2',
-                    child: SizedBox(
-                      child: Text('Item 2'),
-                    ),
+                    child: SizedBox(child: Text('Item 2')),
                   ),
                   // This menu item's height will be 100.
                   const CheckedPopupMenuItem<String>(
                     checked: true,
                     height: 100,
                     value: '3',
-                    child: SizedBox(
-                      child: Text('Item 3'),
-                    ),
+                    child: SizedBox(child: Text('Item 3')),
                   ),
                 ];
               },
@@ -1783,7 +2083,7 @@ void main() {
     );
   });
 
-  testWidgetsWithLeakTracking('CheckedPopupMenuItem custom padding', (WidgetTester tester) async {
+  testWidgets('CheckedPopupMenuItem custom padding', (WidgetTester tester) async {
     final Key popupMenuButtonKey = UniqueKey();
     final Type menuItemType = const CheckedPopupMenuItem<String>(child: Text('item')).runtimeType;
 
@@ -1794,7 +2094,7 @@ void main() {
             child: PopupMenuButton<String>(
               key: popupMenuButtonKey,
               child: const Text('button'),
-              onSelected: (String result) { },
+              onSelected: (String result) {},
               itemBuilder: (BuildContext context) {
                 return <PopupMenuEntry<String>>[
                   const CheckedPopupMenuItem<String>(
@@ -1833,25 +2133,46 @@ void main() {
 
     // The menu items and their InkWells should have the expected vertical size
     // given the interactions between heights and padding.
-    expect(tester.getSize(find.widgetWithText(menuItemType, 'Item 0')).height, 56); // Minimum ListTile height (56)
-    expect(tester.getSize(find.widgetWithText(menuItemType, 'Item 1')).height, 56); // Minimum ListTile height (56)
-    expect(tester.getSize(find.widgetWithText(menuItemType, 'Item 2')).height, 96); // Padding (20.0 + 20.0) + Height of ListTile (56) = 96
-    expect(tester.getSize(find.widgetWithText(menuItemType, 'Item 3')).height, 100); // Height value of 100, since child (56) + padding (40) < 100
+    expect(
+      tester.getSize(find.widgetWithText(menuItemType, 'Item 0')).height,
+      56,
+    ); // Minimum ListTile height (56)
+    expect(
+      tester.getSize(find.widgetWithText(menuItemType, 'Item 1')).height,
+      56,
+    ); // Minimum ListTile height (56)
+    expect(
+      tester.getSize(find.widgetWithText(menuItemType, 'Item 2')).height,
+      96,
+    ); // Padding (20.0 + 20.0) + Height of ListTile (56) = 96
+    expect(
+      tester.getSize(find.widgetWithText(menuItemType, 'Item 3')).height,
+      100,
+    ); // Height value of 100, since child (56) + padding (40) < 100
 
-    expect(tester.widget<Container>(find.widgetWithText(Container, 'Item 0')).padding, EdgeInsets.zero);
-    expect(tester.widget<Container>(find.widgetWithText(Container, 'Item 1')).padding, EdgeInsets.zero);
-    expect(tester.widget<Container>(find.widgetWithText(Container, 'Item 2')).padding, const EdgeInsets.all(20));
-    expect(tester.widget<Container>(find.widgetWithText(Container, 'Item 3')).padding, const EdgeInsets.all(20));
+    EdgeInsetsGeometry paddingFor(String text) {
+      final ConstrainedBox widget = tester.widget<ConstrainedBox>(
+        find.ancestor(
+          of: find.text(text),
+          matching: find.byWidgetPredicate(
+            (Widget widget) => widget is ConstrainedBox && widget.child is Padding,
+          ),
+        ),
+      );
+      return (widget.child! as Padding).padding;
+    }
+
+    expect(paddingFor('Item 0'), EdgeInsets.zero);
+    expect(paddingFor('Item 1'), EdgeInsets.zero);
+    expect(paddingFor('Item 2'), const EdgeInsets.all(20));
+    expect(paddingFor('Item 3'), const EdgeInsets.all(20));
   });
 
-  testWidgetsWithLeakTracking('Update PopupMenuItem layout while the menu is visible', (WidgetTester tester) async {
+  testWidgets('Update PopupMenuItem layout while the menu is visible', (WidgetTester tester) async {
     final Key popupMenuButtonKey = UniqueKey();
     final Type menuItemType = const PopupMenuItem<String>(child: Text('item')).runtimeType;
 
-    Widget buildFrame({
-      TextDirection textDirection = TextDirection.ltr,
-      double fontSize = 24,
-    }) {
+    Widget buildFrame({TextDirection textDirection = TextDirection.ltr, double fontSize = 24}) {
       return MaterialApp(
         theme: ThemeData(useMaterial3: false),
         builder: (BuildContext context, Widget? child) {
@@ -1869,17 +2190,11 @@ void main() {
           body: PopupMenuButton<String>(
             key: popupMenuButtonKey,
             child: const Text('button'),
-            onSelected: (String result) { },
+            onSelected: (String result) {},
             itemBuilder: (BuildContext context) {
               return <PopupMenuEntry<String>>[
-                const PopupMenuItem<String>(
-                  value: '0',
-                  child: Text('Item 0'),
-                ),
-                const PopupMenuItem<String>(
-                  value: '1',
-                  child: Text('Item 1'),
-                ),
+                const PopupMenuItem<String>(value: '0', child: Text('Item 0')),
+                const PopupMenuItem<String>(value: '1', child: Text('Item 1')),
               ];
             },
           ),
@@ -1928,7 +2243,7 @@ void main() {
     }, throwsAssertionError);
   });
 
-  testWidgetsWithLeakTracking('PopupMenuButton default tooltip', (WidgetTester tester) async {
+  testWidgets('PopupMenuButton default tooltip', (WidgetTester tester) async {
     await tester.pumpWidget(
       MaterialApp(
         home: Material(
@@ -1939,10 +2254,7 @@ void main() {
               PopupMenuButton<int>(
                 itemBuilder: (BuildContext context) {
                   return <PopupMenuEntry<int>>[
-                    const PopupMenuItem<int>(
-                      value: 1,
-                      child: Text('Tap me please!'),
-                    ),
+                    const PopupMenuItem<int>(value: 1, child: Text('Tap me please!')),
                   ];
                 },
               ),
@@ -1951,10 +2263,7 @@ void main() {
               PopupMenuButton<int>(
                 itemBuilder: (BuildContext context) {
                   return <PopupMenuEntry<int>>[
-                    const PopupMenuItem<int>(
-                      value: 1,
-                      child: Text('Tap me please!'),
-                    ),
+                    const PopupMenuItem<int>(value: 1, child: Text('Tap me please!')),
                   ];
                 },
                 child: const Text('Test text'),
@@ -1964,10 +2273,7 @@ void main() {
               PopupMenuButton<int>(
                 itemBuilder: (BuildContext context) {
                   return <PopupMenuEntry<int>>[
-                    const PopupMenuItem<int>(
-                      value: 1,
-                      child: Text('Tap me please!'),
-                    ),
+                    const PopupMenuItem<int>(value: 1, child: Text('Tap me please!')),
                   ];
                 },
                 icon: const Icon(Icons.check),
@@ -1984,7 +2290,7 @@ void main() {
     expect(find.byTooltip(const DefaultMaterialLocalizations().showMenuTooltip), findsNWidgets(3));
   });
 
-  testWidgetsWithLeakTracking('PopupMenuButton custom tooltip', (WidgetTester tester) async {
+  testWidgets('PopupMenuButton custom tooltip', (WidgetTester tester) async {
     await tester.pumpWidget(
       MaterialApp(
         home: Material(
@@ -1995,10 +2301,7 @@ void main() {
               PopupMenuButton<int>(
                 itemBuilder: (BuildContext context) {
                   return <PopupMenuEntry<int>>[
-                    const PopupMenuItem<int>(
-                      value: 1,
-                      child: Text('Tap me please!'),
-                    ),
+                    const PopupMenuItem<int>(value: 1, child: Text('Tap me please!')),
                   ];
                 },
                 tooltip: 'Test tooltip',
@@ -2008,10 +2311,7 @@ void main() {
               PopupMenuButton<int>(
                 itemBuilder: (BuildContext context) {
                   return <PopupMenuEntry<int>>[
-                    const PopupMenuItem<int>(
-                      value: 1,
-                      child: Text('Tap me please!'),
-                    ),
+                    const PopupMenuItem<int>(value: 1, child: Text('Tap me please!')),
                   ];
                 },
                 tooltip: 'Test tooltip',
@@ -2022,10 +2322,7 @@ void main() {
               PopupMenuButton<int>(
                 itemBuilder: (BuildContext context) {
                   return <PopupMenuEntry<int>>[
-                    const PopupMenuItem<int>(
-                      value: 1,
-                      child: Text('Tap me please!'),
-                    ),
+                    const PopupMenuItem<int>(value: 1, child: Text('Tap me please!')),
                   ];
                 },
                 tooltip: 'Test tooltip',
@@ -2041,17 +2338,14 @@ void main() {
     expect(find.byTooltip('Test tooltip'), findsNWidgets(3));
   });
 
-  testWidgetsWithLeakTracking('Allow Widget for PopupMenuButton.icon', (WidgetTester tester) async {
+  testWidgets('Allow Widget for PopupMenuButton.icon', (WidgetTester tester) async {
     await tester.pumpWidget(
       MaterialApp(
         home: Material(
           child: PopupMenuButton<int>(
             itemBuilder: (BuildContext context) {
               return <PopupMenuEntry<int>>[
-                const PopupMenuItem<int>(
-                  value: 1,
-                  child: Text('Tap me please!'),
-                ),
+                const PopupMenuItem<int>(value: 1, child: Text('Tap me please!')),
               ];
             },
             tooltip: 'Test tooltip',
@@ -2064,36 +2358,36 @@ void main() {
     expect(find.text('PopupMenuButton icon'), findsOneWidget);
   });
 
-  testWidgetsWithLeakTracking('showMenu uses nested navigator by default', (WidgetTester tester) async {
+  testWidgets('showMenu uses nested navigator by default', (WidgetTester tester) async {
     final MenuObserver rootObserver = MenuObserver();
     final MenuObserver nestedObserver = MenuObserver();
 
-    await tester.pumpWidget(MaterialApp(
-      navigatorObservers: <NavigatorObserver>[rootObserver],
-      home: Navigator(
-        observers: <NavigatorObserver>[nestedObserver],
-        onGenerateRoute: (RouteSettings settings) {
-          return MaterialPageRoute<dynamic>(
-            builder: (BuildContext context) {
-              return ElevatedButton(
-                onPressed: () {
-                  showMenu<int>(
-                    context: context,
-                    position: RelativeRect.fill,
-                    items: <PopupMenuItem<int>>[
-                      const PopupMenuItem<int>(
-                        value: 1, child: Text('1'),
-                      ),
-                    ],
-                  );
-                },
-                child: const Text('Show Menu'),
-              );
-            },
-          );
-        },
+    await tester.pumpWidget(
+      MaterialApp(
+        navigatorObservers: <NavigatorObserver>[rootObserver],
+        home: Navigator(
+          observers: <NavigatorObserver>[nestedObserver],
+          onGenerateRoute: (RouteSettings settings) {
+            return MaterialPageRoute<dynamic>(
+              builder: (BuildContext context) {
+                return ElevatedButton(
+                  onPressed: () {
+                    showMenu<int>(
+                      context: context,
+                      position: RelativeRect.fill,
+                      items: <PopupMenuItem<int>>[
+                        const PopupMenuItem<int>(value: 1, child: Text('1')),
+                      ],
+                    );
+                  },
+                  child: const Text('Show Menu'),
+                );
+              },
+            );
+          },
+        ),
       ),
-    ));
+    );
 
     // Open the dialog.
     await tester.tap(find.byType(ElevatedButton));
@@ -2102,37 +2396,39 @@ void main() {
     expect(nestedObserver.menuCount, 1);
   });
 
-  testWidgetsWithLeakTracking('showMenu uses root navigator if useRootNavigator is true', (WidgetTester tester) async {
+  testWidgets('showMenu uses root navigator if useRootNavigator is true', (
+    WidgetTester tester,
+  ) async {
     final MenuObserver rootObserver = MenuObserver();
     final MenuObserver nestedObserver = MenuObserver();
 
-    await tester.pumpWidget(MaterialApp(
-      navigatorObservers: <NavigatorObserver>[rootObserver],
-      home: Navigator(
-        observers: <NavigatorObserver>[nestedObserver],
-        onGenerateRoute: (RouteSettings settings) {
-          return MaterialPageRoute<dynamic>(
-            builder: (BuildContext context) {
-              return ElevatedButton(
-                onPressed: () {
-                  showMenu<int>(
-                    context: context,
-                    useRootNavigator: true,
-                    position: RelativeRect.fill,
-                    items: <PopupMenuItem<int>>[
-                      const PopupMenuItem<int>(
-                        value: 1, child: Text('1'),
-                      ),
-                    ],
-                  );
-                },
-                child: const Text('Show Menu'),
-              );
-            },
-          );
-        },
+    await tester.pumpWidget(
+      MaterialApp(
+        navigatorObservers: <NavigatorObserver>[rootObserver],
+        home: Navigator(
+          observers: <NavigatorObserver>[nestedObserver],
+          onGenerateRoute: (RouteSettings settings) {
+            return MaterialPageRoute<dynamic>(
+              builder: (BuildContext context) {
+                return ElevatedButton(
+                  onPressed: () {
+                    showMenu<int>(
+                      context: context,
+                      useRootNavigator: true,
+                      position: RelativeRect.fill,
+                      items: <PopupMenuItem<int>>[
+                        const PopupMenuItem<int>(value: 1, child: Text('1')),
+                      ],
+                    );
+                  },
+                  child: const Text('Show Menu'),
+                );
+              },
+            );
+          },
+        ),
       ),
-    ));
+    );
 
     // Open the dialog.
     await tester.tap(find.byType(ElevatedButton));
@@ -2141,7 +2437,7 @@ void main() {
     expect(nestedObserver.menuCount, 0);
   });
 
-  testWidgetsWithLeakTracking('PopupMenuButton calling showButtonMenu manually', (WidgetTester tester) async {
+  testWidgets('PopupMenuButton calling showButtonMenu manually', (WidgetTester tester) async {
     final GlobalKey<PopupMenuButtonState<int>> globalKey = GlobalKey();
 
     await tester.pumpWidget(
@@ -2153,10 +2449,7 @@ void main() {
                 key: globalKey,
                 itemBuilder: (BuildContext context) {
                   return <PopupMenuEntry<int>>[
-                    const PopupMenuItem<int>(
-                      value: 1,
-                      child: Text('Tap me please!'),
-                    ),
+                    const PopupMenuItem<int>(value: 1, child: Text('Tap me please!')),
                   ];
                 },
               ),
@@ -2176,7 +2469,7 @@ void main() {
     expect(find.text('Tap me please!'), findsOneWidget);
   });
 
-  testWidgetsWithLeakTracking('PopupMenuItem changes mouse cursor when hovered', (WidgetTester tester) async {
+  testWidgets('PopupMenuItem changes mouse cursor when hovered', (WidgetTester tester) async {
     const Key key = ValueKey<int>(1);
     // Test PopupMenuItem() constructor
     await tester.pumpWidget(
@@ -2187,11 +2480,16 @@ void main() {
             child: Material(
               child: MouseRegion(
                 cursor: SystemMouseCursors.forbidden,
-                child: PopupMenuItem<int>(
-                  key: key,
-                  mouseCursor: SystemMouseCursors.text,
-                  value: 1,
-                  child: Container(),
+                // The [SemanticsRole.menu] is added here to make sure
+                // [PopupMenuItem]'s parent role is menu.
+                child: Semantics(
+                  role: SemanticsRole.menu,
+                  child: PopupMenuItem<int>(
+                    key: key,
+                    mouseCursor: SystemMouseCursors.text,
+                    value: 1,
+                    child: Container(),
+                  ),
                 ),
               ),
             ),
@@ -2200,12 +2498,18 @@ void main() {
       ),
     );
 
-    final TestGesture gesture = await tester.createGesture(kind: PointerDeviceKind.mouse, pointer: 1);
+    final TestGesture gesture = await tester.createGesture(
+      kind: PointerDeviceKind.mouse,
+      pointer: 1,
+    );
     await gesture.addPointer(location: tester.getCenter(find.byKey(key)));
 
     await tester.pump();
 
-    expect(RendererBinding.instance.mouseTracker.debugDeviceActiveCursor(1), SystemMouseCursors.text);
+    expect(
+      RendererBinding.instance.mouseTracker.debugDeviceActiveCursor(1),
+      SystemMouseCursors.text,
+    );
 
     // Test default cursor
     await tester.pumpWidget(
@@ -2216,10 +2520,11 @@ void main() {
             child: Material(
               child: MouseRegion(
                 cursor: SystemMouseCursors.forbidden,
-                child: PopupMenuItem<int>(
-                  key: key,
-                  value: 1,
-                  child: Container(),
+                // The [SemanticsRole.menu] is added here to make sure
+                // [PopupMenuItem]'s parent role is menu.
+                child: Semantics(
+                  role: SemanticsRole.menu,
+                  child: PopupMenuItem<int>(key: key, value: 1, child: Container()),
                 ),
               ),
             ),
@@ -2228,7 +2533,10 @@ void main() {
       ),
     );
 
-    expect(RendererBinding.instance.mouseTracker.debugDeviceActiveCursor(1), SystemMouseCursors.click);
+    expect(
+      RendererBinding.instance.mouseTracker.debugDeviceActiveCursor(1),
+      SystemMouseCursors.click,
+    );
 
     // Test default cursor when disabled
     await tester.pumpWidget(
@@ -2239,11 +2547,11 @@ void main() {
             child: Material(
               child: MouseRegion(
                 cursor: SystemMouseCursors.forbidden,
-                child: PopupMenuItem<int>(
-                  key: key,
-                  value: 1,
-                  enabled: false,
-                  child: Container(),
+                // The [SemanticsRole.menu] is added here to make sure
+                // [PopupMenuItem]'s parent role is menu.
+                child: Semantics(
+                  role: SemanticsRole.menu,
+                  child: PopupMenuItem<int>(key: key, value: 1, enabled: false, child: Container()),
                 ),
               ),
             ),
@@ -2252,10 +2560,15 @@ void main() {
       ),
     );
 
-    expect(RendererBinding.instance.mouseTracker.debugDeviceActiveCursor(1), SystemMouseCursors.basic);
+    expect(
+      RendererBinding.instance.mouseTracker.debugDeviceActiveCursor(1),
+      SystemMouseCursors.basic,
+    );
   });
 
-  testWidgetsWithLeakTracking('CheckedPopupMenuItem changes mouse cursor when hovered', (WidgetTester tester) async {
+  testWidgets('CheckedPopupMenuItem changes mouse cursor when hovered', (
+    WidgetTester tester,
+  ) async {
     const Key key = ValueKey<int>(1);
     // Test CheckedPopupMenuItem() constructor
     await tester.pumpWidget(
@@ -2266,11 +2579,16 @@ void main() {
             child: Material(
               child: MouseRegion(
                 cursor: SystemMouseCursors.forbidden,
-                child: CheckedPopupMenuItem<int>(
-                  key: key,
-                  mouseCursor: SystemMouseCursors.text,
-                  value: 1,
-                  child: Container(),
+                // The [SemanticsRole.menu] is added here to make sure
+                // [CheckedPopupMenuItem]'s parent role is menu.
+                child: Semantics(
+                  role: SemanticsRole.menu,
+                  child: CheckedPopupMenuItem<int>(
+                    key: key,
+                    mouseCursor: SystemMouseCursors.text,
+                    value: 1,
+                    child: Container(),
+                  ),
                 ),
               ),
             ),
@@ -2279,13 +2597,19 @@ void main() {
       ),
     );
 
-    final TestGesture gesture = await tester.createGesture(kind: PointerDeviceKind.mouse, pointer: 1);
+    final TestGesture gesture = await tester.createGesture(
+      kind: PointerDeviceKind.mouse,
+      pointer: 1,
+    );
     await gesture.addPointer(location: tester.getCenter(find.byKey(key)));
     addTearDown(gesture.removePointer);
 
     await tester.pump();
 
-    expect(RendererBinding.instance.mouseTracker.debugDeviceActiveCursor(1), SystemMouseCursors.text);
+    expect(
+      RendererBinding.instance.mouseTracker.debugDeviceActiveCursor(1),
+      SystemMouseCursors.text,
+    );
 
     // Test default cursor
     await tester.pumpWidget(
@@ -2296,10 +2620,11 @@ void main() {
             child: Material(
               child: MouseRegion(
                 cursor: SystemMouseCursors.forbidden,
-                child: CheckedPopupMenuItem<int>(
-                  key: key,
-                  value: 1,
-                  child: Container(),
+                // The [SemanticsRole.menu] is added here to make sure
+                // [CheckedPopupMenuItem]'s parent role is menu.
+                child: Semantics(
+                  role: SemanticsRole.menu,
+                  child: CheckedPopupMenuItem<int>(key: key, value: 1, child: Container()),
                 ),
               ),
             ),
@@ -2308,7 +2633,10 @@ void main() {
       ),
     );
 
-    expect(RendererBinding.instance.mouseTracker.debugDeviceActiveCursor(1), SystemMouseCursors.click);
+    expect(
+      RendererBinding.instance.mouseTracker.debugDeviceActiveCursor(1),
+      SystemMouseCursors.click,
+    );
 
     // Test default cursor when disabled
     await tester.pumpWidget(
@@ -2319,11 +2647,16 @@ void main() {
             child: Material(
               child: MouseRegion(
                 cursor: SystemMouseCursors.forbidden,
-                child: CheckedPopupMenuItem<int>(
-                  key: key,
-                  value: 1,
-                  enabled: false,
-                  child: Container(),
+                // The [SemanticsRole.menu] is added here to make sure
+                // [CheckedPopupMenuItem]'s parent role is menu.
+                child: Semantics(
+                  role: SemanticsRole.menu,
+                  child: CheckedPopupMenuItem<int>(
+                    key: key,
+                    value: 1,
+                    enabled: false,
+                    child: Container(),
+                  ),
                 ),
               ),
             ),
@@ -2332,10 +2665,15 @@ void main() {
       ),
     );
 
-    expect(RendererBinding.instance.mouseTracker.debugDeviceActiveCursor(1), SystemMouseCursors.basic);
+    expect(
+      RendererBinding.instance.mouseTracker.debugDeviceActiveCursor(1),
+      SystemMouseCursors.basic,
+    );
   });
 
-  testWidgetsWithLeakTracking('PopupMenu in AppBar does not overlap with the status bar', (WidgetTester tester) async {
+  testWidgets('PopupMenu in AppBar does not overlap with the status bar', (
+    WidgetTester tester,
+  ) async {
     const List<PopupMenuItem<int>> choices = <PopupMenuItem<int>>[
       PopupMenuItem<int>(value: 1, child: Text('Item 1')),
       PopupMenuItem<int>(value: 2, child: Text('Item 2')),
@@ -2350,7 +2688,9 @@ void main() {
       MaterialApp(
         builder: (BuildContext context, Widget? child) {
           return MediaQuery(
-            data: const MediaQueryData(padding: EdgeInsets.only(top: statusBarHeight)), // status bar
+            data: const MediaQueryData(
+              padding: EdgeInsets.only(top: statusBarHeight),
+            ), // status bar
             child: child!,
           );
         },
@@ -2394,7 +2734,9 @@ void main() {
     expect(tester.getTopLeft(find.byWidget(firstItem)).dy, greaterThan(statusBarHeight));
   });
 
-  testWidgetsWithLeakTracking('Vertically long PopupMenu does not overlap with the status bar and bottom notch', (WidgetTester tester) async {
+  testWidgets('Vertically long PopupMenu does not overlap with the status bar and bottom notch', (
+    WidgetTester tester,
+  ) async {
     const double windowPaddingTop = 44;
     const double windowPaddingBottom = 34;
 
@@ -2403,25 +2745,18 @@ void main() {
         builder: (BuildContext context, Widget? child) {
           return MediaQuery(
             data: const MediaQueryData(
-              padding: EdgeInsets.only(
-                top: windowPaddingTop,
-                bottom: windowPaddingBottom,
-              ),
+              padding: EdgeInsets.only(top: windowPaddingTop, bottom: windowPaddingBottom),
             ),
             child: child!,
           );
         },
         home: Scaffold(
-          appBar: AppBar(
-            title: const Text('PopupMenu Test'),
-          ),
+          appBar: AppBar(title: const Text('PopupMenu Test')),
           body: PopupMenuButton<int>(
             child: const Text('Show Menu'),
             itemBuilder: (BuildContext context) => Iterable<PopupMenuItem<int>>.generate(
-              20, (int i) => PopupMenuItem<int>(
-                value: i,
-                child: Text('Item $i'),
-              ),
+              20,
+              (int i) => PopupMenuItem<int>(value: i, child: Text('Item $i')),
             ).toList(),
           ),
         ),
@@ -2438,7 +2773,7 @@ void main() {
     expect(bottomRightOfMenu.dy, 600.0 - windowPaddingBottom - 8.0); // Screen height is 600.
   });
 
-  testWidgetsWithLeakTracking('PopupMenu position test when have unsafe area', (WidgetTester tester) async {
+  testWidgets('PopupMenu position test when have unsafe area', (WidgetTester tester) async {
     final GlobalKey buttonKey = GlobalKey();
 
     Widget buildFrame(double width, double height) {
@@ -2446,12 +2781,7 @@ void main() {
         theme: ThemeData(useMaterial3: false),
         builder: (BuildContext context, Widget? child) {
           return MediaQuery(
-            data: const MediaQueryData(
-              padding: EdgeInsets.only(
-                top: 32.0,
-                bottom: 32.0,
-              ),
-            ),
+            data: const MediaQueryData(padding: EdgeInsets.only(top: 32.0, bottom: 32.0)),
             child: child!,
           );
         },
@@ -2464,9 +2794,7 @@ void main() {
                   key: buttonKey,
                   height: height,
                   width: width,
-                  child: const ColoredBox(
-                    color: Colors.pink,
-                  ),
+                  child: const ColoredBox(color: Colors.pink),
                 ),
                 itemBuilder: (BuildContext context) => <PopupMenuEntry<int>>[
                   const PopupMenuItem<int>(value: 1, child: Text('-1-')),
@@ -2496,7 +2824,9 @@ void main() {
   });
 
   // Regression test for https://github.com/flutter/flutter/issues/82874
-  testWidgetsWithLeakTracking('PopupMenu position test when have unsafe area - left/right padding', (WidgetTester tester) async {
+  testWidgets('PopupMenu position test when have unsafe area - left/right padding', (
+    WidgetTester tester,
+  ) async {
     final GlobalKey buttonKey = GlobalKey();
     const EdgeInsets padding = EdgeInsets.only(left: 300.0, top: 32.0, right: 310.0, bottom: 64.0);
     EdgeInsets? mediaQueryPadding;
@@ -2506,9 +2836,7 @@ void main() {
         theme: ThemeData(useMaterial3: false),
         builder: (BuildContext context, Widget? child) {
           return MediaQuery(
-            data: const MediaQueryData(
-              padding: padding,
-            ),
+            data: const MediaQueryData(padding: padding),
             child: child!,
           );
         },
@@ -2521,9 +2849,7 @@ void main() {
                   key: buttonKey,
                   height: height,
                   width: width,
-                  child: const ColoredBox(
-                    color: Colors.pink,
-                  ),
+                  child: const ColoredBox(color: Colors.pink),
                 ),
                 itemBuilder: (BuildContext context) {
                   return <PopupMenuEntry<int>>[
@@ -2571,6 +2897,75 @@ void main() {
     expect(mediaQueryPadding, EdgeInsets.zero);
   });
 
+  // Regression test for https://github.com/flutter/flutter/issues/163477
+  testWidgets("PopupMenu's overlay can be rebuilt even when the button is unmounted", (
+    WidgetTester tester,
+  ) async {
+    final GlobalKey buttonKey = GlobalKey();
+
+    late StateSetter setState;
+    bool showButton = true;
+
+    Widget widget({required Size viewSize}) {
+      return Center(
+        child: SizedBox(
+          width: viewSize.width,
+          height: viewSize.height,
+          child: MaterialApp(
+            home: Material(
+              child: StatefulBuilder(
+                builder: (BuildContext context, StateSetter innerSetState) {
+                  setState = innerSetState;
+                  return showButton
+                      ? PopupMenuButton<int>(
+                          key: buttonKey,
+                          popUpAnimationStyle: const AnimationStyle(
+                            reverseDuration: Duration(milliseconds: 400),
+                          ),
+                          itemBuilder: (BuildContext context) {
+                            return <PopupMenuEntry<int>>[
+                              PopupMenuItem<int>(
+                                value: 1,
+                                child: const Text('ACTION'),
+                                onTap: () {},
+                              ),
+                            ];
+                          },
+                        )
+                      : Container();
+                },
+              ),
+            ),
+          ),
+        ),
+      );
+    }
+
+    // Pump a button
+    await tester.pumpWidget(widget(viewSize: const Size(500, 500)));
+
+    // Tap the button to show the menu
+    await tester.tap(find.byKey(buttonKey));
+    await tester.pumpAndSettle();
+    expect(find.text('ACTION'), findsOne);
+    expect(find.byKey(buttonKey), findsOne);
+
+    // Hide the button. The menu still shows since it's placed on a separate route.
+    setState(() {
+      showButton = false;
+    });
+    await tester.pump();
+    expect(find.text('ACTION'), findsOne);
+    expect(find.byKey(buttonKey), findsNothing);
+
+    // Resize the view, causing the menu to rebuild. Before the fix, this
+    // rebuild would lead to a crash, because it relies on context of the button,
+    // which has been unmounted.
+    await tester.pumpWidget(widget(viewSize: const Size(300, 300)));
+
+    expect(tester.takeException(), isNull);
+  });
+
   group('feedback', () {
     late FeedbackTester feedback;
 
@@ -2582,23 +2977,16 @@ void main() {
       feedback.dispose();
     });
 
-    Widget buildFrame({ bool? widgetEnableFeedback, bool? themeEnableFeedback }) {
+    Widget buildFrame({bool? widgetEnableFeedback, bool? themeEnableFeedback}) {
       return MaterialApp(
         home: Scaffold(
           body: PopupMenuTheme(
-            data: PopupMenuThemeData(
-              enableFeedback: themeEnableFeedback,
-            ),
+            data: PopupMenuThemeData(enableFeedback: themeEnableFeedback),
             child: PopupMenuButton<int>(
               enableFeedback: widgetEnableFeedback,
               child: const Text('Show Menu'),
               itemBuilder: (BuildContext context) {
-                return <PopupMenuItem<int>>[
-                  const PopupMenuItem<int>(
-                    value: 1,
-                    child: Text('One'),
-                  ),
-                ];
+                return <PopupMenuItem<int>>[const PopupMenuItem<int>(value: 1, child: Text('One'))];
               },
             ),
           ),
@@ -2606,7 +2994,7 @@ void main() {
       );
     }
 
-    testWidgetsWithLeakTracking('PopupMenuButton enableFeedback works properly', (WidgetTester tester) async {
+    testWidgets('PopupMenuButton enableFeedback works properly', (WidgetTester tester) async {
       expect(feedback.clickSoundCount, 0);
       expect(feedback.hapticCount, 0);
 
@@ -2647,7 +3035,7 @@ void main() {
       await tester.pumpWidget(Container());
 
       // PopupMenu enableFeedback property overrides PopupMenuButtonTheme.
-      await tester.pumpWidget(buildFrame(widgetEnableFeedback: false,themeEnableFeedback: true));
+      await tester.pumpWidget(buildFrame(widgetEnableFeedback: false, themeEnableFeedback: true));
       await tester.tap(find.text('Show Menu'));
       await tester.pumpAndSettle();
       expect(feedback.clickSoundCount, 2);
@@ -2655,7 +3043,7 @@ void main() {
     });
   });
 
-  testWidgetsWithLeakTracking('Can customize PopupMenuButton icon', (WidgetTester tester) async {
+  testWidgets('Can customize PopupMenuButton icon', (WidgetTester tester) async {
     const Color iconColor = Color(0xffffff00);
     const double iconSize = 29.5;
     await tester.pumpWidget(
@@ -2666,10 +3054,7 @@ void main() {
               iconColor: iconColor,
               iconSize: iconSize,
               itemBuilder: (_) => <PopupMenuEntry<String>>[
-                const PopupMenuItem<String>(
-                  value: 'value',
-                  child: Text('child'),
-                ),
+                const PopupMenuItem<String>(value: 'value', child: Text('child')),
               ],
             ),
           ),
@@ -2681,7 +3066,7 @@ void main() {
     expect(tester.getSize(find.byIcon(Icons.adaptive.more)), const Size(iconSize, iconSize));
   });
 
-  testWidgetsWithLeakTracking('does not crash in small overlay', (WidgetTester tester) async {
+  testWidgets('does not crash in small overlay', (WidgetTester tester) async {
     final GlobalKey navigator = GlobalKey();
     await tester.pumpWidget(
       MaterialApp(
@@ -2693,9 +3078,7 @@ void main() {
                   showMenu<void>(
                     context: navigator.currentContext!,
                     position: RelativeRect.fill,
-                    items: const <PopupMenuItem<void>>[
-                      PopupMenuItem<void>(child: Text('foo')),
-                    ],
+                    items: const <PopupMenuItem<void>>[PopupMenuItem<void>(child: Text('foo'))],
                   );
                 },
                 child: const Text('press'),
@@ -2722,7 +3105,7 @@ void main() {
   });
 
   // Regression test for https://github.com/flutter/flutter/issues/80869
-  testWidgetsWithLeakTracking('The menu position test in the scrollable widget', (WidgetTester tester) async {
+  testWidgets('The menu position test in the scrollable widget', (WidgetTester tester) async {
     final GlobalKey buttonKey = GlobalKey();
 
     await tester.pumpWidget(
@@ -2737,9 +3120,7 @@ void main() {
                     key: buttonKey,
                     height: 10.0,
                     width: 10.0,
-                    child: const ColoredBox(
-                      color: Colors.pink,
-                    ),
+                    child: const ColoredBox(color: Colors.pink),
                   ),
                   itemBuilder: (BuildContext context) => <PopupMenuEntry<int>>[
                     const PopupMenuItem<int>(value: 1, child: Text('-1-')),
@@ -2786,7 +3167,7 @@ void main() {
     expect(popupMenu, const Offset(8.0, 50.0));
   });
 
-  testWidgetsWithLeakTracking('PopupMenuButton custom splash radius', (WidgetTester tester) async {
+  testWidgets('PopupMenuButton custom splash radius', (WidgetTester tester) async {
     Future<void> buildFrameWithoutChild({double? splashRadius}) {
       return tester.pumpWidget(
         MaterialApp(
@@ -2796,10 +3177,7 @@ void main() {
               child: PopupMenuButton<String>(
                 splashRadius: splashRadius,
                 itemBuilder: (_) => <PopupMenuEntry<String>>[
-                  const PopupMenuItem<String>(
-                    value: 'value',
-                    child: Text('child'),
-                  ),
+                  const PopupMenuItem<String>(value: 'value', child: Text('child')),
                 ],
               ),
             ),
@@ -2816,9 +3194,7 @@ void main() {
               child: PopupMenuButton<String>(
                 splashRadius: splashRadius,
                 child: const Text('An item'),
-                itemBuilder: (_) => <PopupMenuEntry<String>>[
-                  const PopupMenuDivider(),
-                ],
+                itemBuilder: (_) => <PopupMenuEntry<String>>[const PopupMenuDivider()],
               ),
             ),
           ),
@@ -2826,25 +3202,23 @@ void main() {
       );
     }
 
-
     await buildFrameWithoutChild();
-    expect(tester.widget<InkResponse>(find.byType(InkResponse)).radius,
-        Material.defaultSplashRadius);
+    expect(
+      tester.widget<InkResponse>(find.byType(InkResponse)).radius,
+      Material.defaultSplashRadius,
+    );
     await buildFrameWithChild();
     expect(tester.widget<InkWell>(find.byType(InkWell)).radius, null);
-
 
     const double testSplashRadius = 50;
 
     await buildFrameWithoutChild(splashRadius: testSplashRadius);
-    expect(tester.widget<InkResponse>(find.byType(InkResponse)).radius,
-        testSplashRadius);
+    expect(tester.widget<InkResponse>(find.byType(InkResponse)).radius, testSplashRadius);
     await buildFrameWithChild(splashRadius: testSplashRadius);
-    expect(tester.widget<InkWell>(find.byType(InkWell)).radius,
-        testSplashRadius);
+    expect(tester.widget<InkWell>(find.byType(InkWell)).radius, testSplashRadius);
   });
 
-  testWidgetsWithLeakTracking('Can override menu size constraints', (WidgetTester tester) async {
+  testWidgets('Can override menu size constraints', (WidgetTester tester) async {
     final Key popupMenuButtonKey = UniqueKey();
     final Type menuItemType = const PopupMenuItem<String>(child: Text('item')).runtimeType;
 
@@ -2854,14 +3228,9 @@ void main() {
           body: Center(
             child: PopupMenuButton<String>(
               key: popupMenuButtonKey,
-              constraints: const BoxConstraints(
-                minWidth: 500,
-              ),
+              constraints: const BoxConstraints(minWidth: 500),
               itemBuilder: (_) => <PopupMenuEntry<String>>[
-                const PopupMenuItem<String>(
-                  value: 'value',
-                  child: Text('Item 0'),
-                ),
+                const PopupMenuItem<String>(value: 'value', child: Text('Item 0')),
               ],
             ),
           ),
@@ -2877,7 +3246,7 @@ void main() {
     expect(tester.getSize(find.widgetWithText(menuItemType, 'Item 0')).width, 500);
   });
 
-  testWidgetsWithLeakTracking('Can change menu position and offset', (WidgetTester tester) async {
+  testWidgets('Can change menu position and offset', (WidgetTester tester) async {
     PopupMenuButton<int> buildMenuButton({required PopupMenuPosition position}) {
       return PopupMenuButton<int>(
         position: position,
@@ -2900,9 +3269,7 @@ void main() {
     await tester.pumpWidget(
       MaterialApp(
         home: Scaffold(
-          body: Material(
-            child: buildMenuButton(position: PopupMenuPosition.over),
-          ),
+          body: Material(child: buildMenuButton(position: PopupMenuPosition.over)),
         ),
       ),
     );
@@ -2911,7 +3278,12 @@ void main() {
     await tester.tap(find.byType(IconButton));
     await tester.pumpAndSettle();
 
-    expect(tester.getTopLeft(find.byWidgetPredicate((Widget w) => '${w.runtimeType}' == '_PopupMenu<int?>')), const Offset(8.0, 8.0));
+    expect(
+      tester.getTopLeft(
+        find.byWidgetPredicate((Widget w) => '${w.runtimeType}' == '_PopupMenu<int?>'),
+      ),
+      const Offset(8.0, 8.0),
+    );
 
     // Close the popup menu.
     await tester.tapAt(Offset.zero);
@@ -2921,9 +3293,7 @@ void main() {
     await tester.pumpWidget(
       MaterialApp(
         home: Scaffold(
-          body: Material(
-            child: buildMenuButton(position: PopupMenuPosition.under),
-          ),
+          body: Material(child: buildMenuButton(position: PopupMenuPosition.under)),
         ),
       ),
     );
@@ -2932,7 +3302,12 @@ void main() {
     await tester.tap(find.byType(IconButton));
     await tester.pumpAndSettle();
 
-    expect(tester.getTopLeft(find.byWidgetPredicate((Widget w) => '${w.runtimeType}' == '_PopupMenu<int?>')), const Offset(8.0, 40.0));
+    expect(
+      tester.getTopLeft(
+        find.byWidgetPredicate((Widget w) => '${w.runtimeType}' == '_PopupMenu<int?>'),
+      ),
+      const Offset(8.0, 40.0),
+    );
 
     // Close the popup menu.
     await tester.tapAt(Offset.zero);
@@ -2967,7 +3342,12 @@ void main() {
     await tester.tap(find.byType(IconButton));
     await tester.pumpAndSettle();
 
-    expect(tester.getTopLeft(find.byWidgetPredicate((Widget w) => '${w.runtimeType}' == '_PopupMenu<int?>')), const Offset(8.0, 50.0));
+    expect(
+      tester.getTopLeft(
+        find.byWidgetPredicate((Widget w) => '${w.runtimeType}' == '_PopupMenu<int?>'),
+      ),
+      const Offset(8.0, 50.0),
+    );
 
     // Close the popup menu.
     await tester.tapAt(Offset.zero);
@@ -3003,26 +3383,24 @@ void main() {
     await tester.tap(find.byType(IconButton));
     await tester.pumpAndSettle();
 
-    expect(tester.getTopLeft(find.byWidgetPredicate((Widget w) => '${w.runtimeType}' == '_PopupMenu<int?>')), const Offset(8.0, 90.0));
+    expect(
+      tester.getTopLeft(
+        find.byWidgetPredicate((Widget w) => '${w.runtimeType}' == '_PopupMenu<int?>'),
+      ),
+      const Offset(8.0, 90.0),
+    );
   });
 
-  testWidgetsWithLeakTracking("PopupMenuButton icon inherits IconTheme's size", (WidgetTester tester) async {
+  testWidgets("PopupMenuButton icon inherits IconTheme's size", (WidgetTester tester) async {
     Widget buildPopupMenu({double? themeIconSize, double? iconSize}) {
       return MaterialApp(
-        theme: ThemeData(
-          iconTheme: IconThemeData(
-            size: themeIconSize,
-          ),
-        ),
+        theme: ThemeData(iconTheme: IconThemeData(size: themeIconSize)),
         home: Scaffold(
           body: Center(
             child: PopupMenuButton<String>(
               iconSize: iconSize,
               itemBuilder: (_) => <PopupMenuEntry<String>>[
-                const PopupMenuItem<String>(
-                  value: 'value',
-                  child: Text('Item 0'),
-                ),
+                const PopupMenuItem<String>(value: 'value', child: Text('Item 0')),
               ],
             ),
           ),
@@ -3048,7 +3426,7 @@ void main() {
     expect(tester.getSize(find.byIcon(Icons.more_vert)), const Size(50.0, 50.0));
   });
 
-  testWidgetsWithLeakTracking('Popup menu clip behavior', (WidgetTester tester) async {
+  testWidgets('Popup menu clip behavior', (WidgetTester tester) async {
     // Regression test for https://github.com/flutter/flutter/issues/107215
     final Key popupButtonKey = UniqueKey();
     const double radius = 20.0;
@@ -3064,10 +3442,7 @@ void main() {
               ),
               clipBehavior: clipBehavior,
               itemBuilder: (_) => <PopupMenuEntry<String>>[
-                const PopupMenuItem<String>(
-                  value: 'value',
-                  child: Text('Item 0'),
-                ),
+                const PopupMenuItem<String>(value: 'value', child: Text('Item 0')),
               ],
             ),
           ),
@@ -3100,49 +3475,40 @@ void main() {
     expect(material.clipBehavior, Clip.hardEdge);
   });
 
-  testWidgetsWithLeakTracking('Uses closed loop focus traversal', (WidgetTester tester) async {
+  testWidgets('Uses closed loop focus traversal', (WidgetTester tester) async {
     FocusNode nodeA() => Focus.of(find.text('A').evaluate().single);
     FocusNode nodeB() => Focus.of(find.text('B').evaluate().single);
 
     final GlobalKey popupButtonKey = GlobalKey();
-    await tester.pumpWidget(MaterialApp(
-      home: Scaffold(
-        body: Center(
-          child: PopupMenuButton<String>(
-            key: popupButtonKey,
-            itemBuilder: (_) => const <PopupMenuEntry<String>>[
-              PopupMenuItem<String>(
-                value: 'a',
-                child: Text('A'),
-              ),
-              PopupMenuItem<String>(
-                value: 'b',
-                child: Text('B'),
-              ),
-            ],
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: Center(
+            child: PopupMenuButton<String>(
+              key: popupButtonKey,
+              itemBuilder: (_) => const <PopupMenuEntry<String>>[
+                PopupMenuItem<String>(value: 'a', child: Text('A')),
+                PopupMenuItem<String>(value: 'b', child: Text('B')),
+              ],
+            ),
           ),
         ),
       ),
-    ));
+    );
 
     // Open the popup to build and show the menu contents.
     await tester.tap(find.byKey(popupButtonKey));
     await tester.pumpAndSettle();
 
     Future<bool> nextFocus() async {
-      final bool result = Actions.invoke(
-        primaryFocus!.context!,
-        const NextFocusIntent(),
-      )! as bool;
+      final bool result = Actions.invoke(primaryFocus!.context!, const NextFocusIntent())! as bool;
       await tester.pump();
       return result;
     }
 
     Future<bool> previousFocus() async {
-      final bool result = Actions.invoke(
-        primaryFocus!.context!,
-        const PreviousFocusIntent(),
-      )! as bool;
+      final bool result =
+          Actions.invoke(primaryFocus!.context!, const PreviousFocusIntent())! as bool;
       await tester.pump();
       return result;
     }
@@ -3174,7 +3540,7 @@ void main() {
     expect(nodeB().hasFocus, false);
   });
 
-  testWidgetsWithLeakTracking('Popup menu scrollbar inherits ScrollbarTheme', (WidgetTester tester) async {
+  testWidgets('Popup menu scrollbar inherits ScrollbarTheme', (WidgetTester tester) async {
     final Key popupButtonKey = UniqueKey();
     const ScrollbarThemeData scrollbarTheme = ScrollbarThemeData(
       thumbColor: MaterialStatePropertyAll<Color?>(Color(0xffff0000)),
@@ -3182,10 +3548,7 @@ void main() {
     );
     await tester.pumpWidget(
       MaterialApp(
-        theme: ThemeData(
-          scrollbarTheme: scrollbarTheme,
-          useMaterial3: true,
-        ),
+        theme: ThemeData(scrollbarTheme: scrollbarTheme),
         home: Material(
           child: Column(
             children: <Widget>[
@@ -3193,17 +3556,14 @@ void main() {
                 key: popupButtonKey,
                 itemBuilder: (BuildContext context) {
                   return <PopupMenuEntry<void>>[
-                    const PopupMenuItem<void>(
-                      height: 1000,
-                      child: Text('Example'),
-                    ),
+                    const PopupMenuItem<void>(height: 1000, child: Text('Example')),
                   ];
                 },
               ),
             ],
           ),
         ),
-      )
+      ),
     );
 
     await tester.tap(find.byKey(popupButtonKey));
@@ -3211,10 +3571,7 @@ void main() {
 
     expect(find.byType(Scrollbar), findsOneWidget);
     // Test Scrollbar thumb color.
-    expect(
-      find.byType(Scrollbar),
-      paints..rrect(color: const Color(0xffff0000)),
-    );
+    expect(find.byType(Scrollbar), paints..rrect(color: const Color(0xffff0000)));
 
     // Close the menu.
     await tester.tapAt(const Offset(20.0, 20.0));
@@ -3223,10 +3580,7 @@ void main() {
     // Test local ScrollbarTheme overrides global ScrollbarTheme.
     await tester.pumpWidget(
       MaterialApp(
-        theme: ThemeData(
-          scrollbarTheme: scrollbarTheme,
-          useMaterial3: true,
-        ),
+        theme: ThemeData(scrollbarTheme: scrollbarTheme),
         home: Material(
           child: Column(
             children: <Widget>[
@@ -3238,10 +3592,7 @@ void main() {
                   key: popupButtonKey,
                   itemBuilder: (BuildContext context) {
                     return <PopupMenuEntry<void>>[
-                      const PopupMenuItem<void>(
-                        height: 1000,
-                        child: Text('Example'),
-                      ),
+                      const PopupMenuItem<void>(height: 1000, child: Text('Example')),
                     ];
                   },
                 ),
@@ -3249,36 +3600,30 @@ void main() {
             ],
           ),
         ),
-      )
+      ),
     );
     await tester.tap(find.byKey(popupButtonKey));
     await tester.pumpAndSettle();
 
     expect(find.byType(Scrollbar), findsOneWidget);
     // Scrollbar thumb color should be updated.
-    expect(
-      find.byType(Scrollbar),
-      paints..rrect(color: const Color(0xff0000ff)),
-    );
+    expect(find.byType(Scrollbar), paints..rrect(color: const Color(0xff0000ff)));
   }, variant: TargetPlatformVariant.desktop());
 
-  testWidgetsWithLeakTracking('Popup menu with RouteSettings', (WidgetTester tester) async {
+  testWidgets('Popup menu with RouteSettings', (WidgetTester tester) async {
     late RouteSettings currentRouteSetting;
 
     await tester.pumpWidget(
       MaterialApp(
         navigatorObservers: <NavigatorObserver>[
-          _ClosureNavigatorObserver(onDidChange: (Route<dynamic> newRoute) {
-            currentRouteSetting = newRoute.settings;
-          }),
+          _ClosureNavigatorObserver(
+            onDidChange: (Route<dynamic> newRoute) {
+              currentRouteSetting = newRoute.settings;
+            },
+          ),
         ],
         home: const Material(
-          child: Center(
-            child: ElevatedButton(
-              onPressed: null,
-              child: Text('Go'),
-            ),
-          ),
+          child: Center(child: ElevatedButton(onPressed: null, child: Text('Go'))),
         ),
       ),
     );
@@ -3289,9 +3634,7 @@ void main() {
     showMenu<void>(
       context: context,
       position: RelativeRect.fill,
-      items: const <PopupMenuItem<void>>[
-        PopupMenuItem<void>(child: Text('foo')),
-      ],
+      items: const <PopupMenuItem<void>>[PopupMenuItem<void>(child: Text('foo'))],
       routeSettings: exampleSetting,
     );
 
@@ -3304,7 +3647,7 @@ void main() {
     expect(currentRouteSetting.name, '/');
   });
 
-  testWidgetsWithLeakTracking('Popup menu is positioned under the child', (WidgetTester tester) async {
+  testWidgets('Popup menu is positioned under the child', (WidgetTester tester) async {
     final Key popupButtonKey = UniqueKey();
     final Key childKey = UniqueKey();
     await tester.pumpWidget(
@@ -3316,22 +3659,14 @@ void main() {
                 key: popupButtonKey,
                 position: PopupMenuPosition.under,
                 itemBuilder: (BuildContext context) {
-                  return <PopupMenuEntry<void>>[
-                    const PopupMenuItem<void>(
-                      child: Text('Example'),
-                    ),
-                  ];
+                  return <PopupMenuEntry<void>>[const PopupMenuItem<void>(child: Text('Example'))];
                 },
-                child: SizedBox(
-                  key: childKey,
-                  height: 50,
-                  width: 50,
-                )
+                child: SizedBox(key: childKey, height: 50, width: 50),
               ),
             ],
           ),
         ),
-      )
+      ),
     );
 
     await tester.tap(find.byKey(popupButtonKey));
@@ -3342,7 +3677,9 @@ void main() {
     expect(childBottomLeft, menuTopLeft);
   });
 
-  testWidgetsWithLeakTracking('PopupMenuItem onTap should be calling after Navigator.pop', (WidgetTester tester) async {
+  testWidgets('PopupMenuItem onTap should be calling after Navigator.pop', (
+    WidgetTester tester,
+  ) async {
     await tester.pumpWidget(
       MaterialApp(
         home: Scaffold(
@@ -3384,12 +3721,14 @@ void main() {
     expect(modalBottomSheet, findsOneWidget);
   });
 
-  testWidgetsWithLeakTracking('Material3 - CheckedPopupMenuItem.labelTextStyle uses correct text style', (WidgetTester tester) async {
+  testWidgets('Material3 - CheckedPopupMenuItem.labelTextStyle uses correct text style', (
+    WidgetTester tester,
+  ) async {
     final Key popupMenuButtonKey = UniqueKey();
-    ThemeData theme = ThemeData(useMaterial3: true);
+    ThemeData theme = ThemeData();
 
     Widget buildMenu() {
-      return  MaterialApp(
+      return MaterialApp(
         theme: theme,
         home: Scaffold(
           appBar: AppBar(
@@ -3397,13 +3736,8 @@ void main() {
               PopupMenuButton<void>(
                 key: popupMenuButtonKey,
                 itemBuilder: (BuildContext context) => <PopupMenuItem<void>>[
-                  const CheckedPopupMenuItem<void>(
-                    child: Text('Item 1'),
-                  ),
-                  const CheckedPopupMenuItem<int>(
-                    checked: true,
-                    child: Text('Item 2'),
-                  ),
+                  const CheckedPopupMenuItem<void>(child: Text('Item 1')),
+                  const CheckedPopupMenuItem<int>(checked: true, child: Text('Item 2')),
                 ],
               ),
             ],
@@ -3432,9 +3766,7 @@ void main() {
       fontWeight: FontWeight.bold,
       fontStyle: FontStyle.italic,
     );
-    theme = theme.copyWith(
-      textTheme: const TextTheme(labelLarge: customTextStyle),
-    );
+    theme = theme.copyWith(textTheme: const TextTheme(labelLarge: customTextStyle));
     await tester.pumpWidget(buildMenu());
 
     // Show the menu.
@@ -3447,13 +3779,16 @@ void main() {
     expect(_labelStyle(tester, 'Item 1')!.fontStyle, customTextStyle.fontStyle);
   });
 
-  testWidgetsWithLeakTracking('CheckedPopupMenuItem.labelTextStyle resolve material states', (WidgetTester tester) async {
+  testWidgets('CheckedPopupMenuItem.labelTextStyle resolve material states', (
+    WidgetTester tester,
+  ) async {
     final Key popupMenuButtonKey = UniqueKey();
-    final MaterialStateProperty<TextStyle?> labelTextStyle = MaterialStateProperty.resolveWith(
-     (Set<MaterialState> states) {
-       if (states.contains(MaterialState.selected)) {
+    final MaterialStateProperty<TextStyle?> labelTextStyle = MaterialStateProperty.resolveWith((
+      Set<MaterialState> states,
+    ) {
+      if (states.contains(MaterialState.selected)) {
         return const TextStyle(color: Colors.red, fontSize: 24.0);
-       }
+      }
 
       return const TextStyle(color: Colors.amber, fontSize: 20.0);
     });
@@ -3487,17 +3822,16 @@ void main() {
     await tester.tap(find.byKey(popupMenuButtonKey));
     await tester.pumpAndSettle();
 
-    expect(
-      _labelStyle(tester, 'Item 1'),
-      labelTextStyle.resolve(<MaterialState>{})
-    );
+    expect(_labelStyle(tester, 'Item 1'), labelTextStyle.resolve(<MaterialState>{}));
     expect(
       _labelStyle(tester, 'Item 2'),
-      labelTextStyle.resolve(<MaterialState>{MaterialState.selected})
+      labelTextStyle.resolve(<MaterialState>{MaterialState.selected}),
     );
   });
 
-  testWidgetsWithLeakTracking('CheckedPopupMenuItem overrides redundant ListTile.contentPadding', (WidgetTester tester) async {
+  testWidgets('CheckedPopupMenuItem overrides redundant ListTile.contentPadding', (
+    WidgetTester tester,
+  ) async {
     final Key popupMenuButtonKey = UniqueKey();
     await tester.pumpWidget(
       MaterialApp(
@@ -3507,13 +3841,10 @@ void main() {
             child: PopupMenuButton<String>(
               key: popupMenuButtonKey,
               child: const Text('button'),
-              onSelected: (String result) { },
+              onSelected: (String result) {},
               itemBuilder: (BuildContext context) {
                 return <PopupMenuEntry<String>>[
-                   const CheckedPopupMenuItem<String>(
-                    value: '0',
-                    child: Text('Item 0'),
-                  ),
+                  const CheckedPopupMenuItem<String>(value: '0', child: Text('Item 0')),
                   const CheckedPopupMenuItem<String>(
                     value: '1',
                     checked: true,
@@ -3532,17 +3863,18 @@ void main() {
     await tester.pumpAndSettle();
 
     SafeArea getItemSafeArea(String label) {
-      return tester.widget<SafeArea>(find.ancestor(
-        of: find.text(label),
-        matching: find.byType(SafeArea),
-      ));
+      return tester.widget<SafeArea>(
+        find.ancestor(of: find.text(label), matching: find.byType(SafeArea)),
+      );
     }
 
     expect(getItemSafeArea('Item 0').minimum, EdgeInsets.zero);
     expect(getItemSafeArea('Item 1').minimum, EdgeInsets.zero);
   });
 
-  testWidgetsWithLeakTracking('PopupMenuItem overrides redundant ListTile.contentPadding', (WidgetTester tester) async {
+  testWidgets('PopupMenuItem overrides redundant ListTile.contentPadding', (
+    WidgetTester tester,
+  ) async {
     final Key popupMenuButtonKey = UniqueKey();
     await tester.pumpWidget(
       MaterialApp(
@@ -3552,10 +3884,10 @@ void main() {
             child: PopupMenuButton<String>(
               key: popupMenuButtonKey,
               child: const Text('button'),
-              onSelected: (String result) { },
+              onSelected: (String result) {},
               itemBuilder: (BuildContext context) {
                 return <PopupMenuEntry<String>>[
-                   const PopupMenuItem<String>(
+                  const PopupMenuItem<String>(
                     value: '0',
                     enabled: false,
                     child: ListTile(title: Text('Item 0')),
@@ -3577,19 +3909,20 @@ void main() {
     await tester.pumpAndSettle();
 
     SafeArea getItemSafeArea(String label) {
-      return tester.widget<SafeArea>(find.ancestor(
-        of: find.text(label),
-        matching: find.byType(SafeArea),
-      ));
+      return tester.widget<SafeArea>(
+        find.ancestor(of: find.text(label), matching: find.byType(SafeArea)),
+      );
     }
 
     expect(getItemSafeArea('Item 0').minimum, EdgeInsets.zero);
     expect(getItemSafeArea('Item 1').minimum, EdgeInsets.zero);
   });
 
-  testWidgetsWithLeakTracking('Material3 - PopupMenuItem overrides ListTile.titleTextStyle', (WidgetTester tester) async {
+  testWidgets('Material3 - PopupMenuItem overrides ListTile.titleTextStyle', (
+    WidgetTester tester,
+  ) async {
     final Key popupMenuButtonKey = UniqueKey();
-    ThemeData theme = ThemeData(useMaterial3: true);
+    ThemeData theme = ThemeData();
 
     Widget buildMenu() {
       return MaterialApp(
@@ -3599,14 +3932,11 @@ void main() {
             child: PopupMenuButton<String>(
               key: popupMenuButtonKey,
               child: const Text('button'),
-              onSelected: (String result) { },
+              onSelected: (String result) {},
               itemBuilder: (BuildContext context) {
                 return <PopupMenuEntry<String>>[
-                   // Popup menu item with a Text widget.
-                   const PopupMenuItem<String>(
-                    value: '0',
-                    child: Text('Item 0'),
-                  ),
+                  // Popup menu item with a Text widget.
+                  const PopupMenuItem<String>(value: '0', child: Text('Item 0')),
                   // Popup menu item with a ListTile widget.
                   const PopupMenuItem<String>(
                     value: '1',
@@ -3644,9 +3974,7 @@ void main() {
       fontWeight: FontWeight.bold,
       fontStyle: FontStyle.italic,
     );
-    theme = theme.copyWith(
-      textTheme: const TextTheme(labelLarge: customTextStyle),
-    );
+    theme = theme.copyWith(textTheme: const TextTheme(labelLarge: customTextStyle));
     await tester.pumpWidget(buildMenu());
 
     // Show the menu.
@@ -3664,7 +3992,9 @@ void main() {
     expect(_labelStyle(tester, 'Item 1')!.fontStyle, customTextStyle.fontStyle);
   });
 
-  testWidgetsWithLeakTracking('Material2 - PopupMenuItem overrides ListTile.titleTextStyle', (WidgetTester tester) async {
+  testWidgets('Material2 - PopupMenuItem overrides ListTile.titleTextStyle', (
+    WidgetTester tester,
+  ) async {
     final Key popupMenuButtonKey = UniqueKey();
     ThemeData theme = ThemeData(useMaterial3: false);
 
@@ -3676,14 +4006,11 @@ void main() {
             child: PopupMenuButton<String>(
               key: popupMenuButtonKey,
               child: const Text('button'),
-              onSelected: (String result) { },
+              onSelected: (String result) {},
               itemBuilder: (BuildContext context) {
                 return <PopupMenuEntry<String>>[
-                   // Popup menu item with a Text widget.
-                   const PopupMenuItem<String>(
-                    value: '0',
-                    child: Text('Item 0'),
-                  ),
+                  // Popup menu item with a Text widget.
+                  const PopupMenuItem<String>(value: '0', child: Text('Item 0')),
                   // Popup menu item with a ListTile widget.
                   const PopupMenuItem<String>(
                     value: '1',
@@ -3705,11 +4032,11 @@ void main() {
 
     // Test popup menu item with a Text widget.
     expect(_labelStyle(tester, 'Item 0')!.fontSize, 16.0);
-    expect(_labelStyle(tester, 'Item 0')!.color, theme.textTheme.subtitle1!.color);
+    expect(_labelStyle(tester, 'Item 0')!.color, theme.textTheme.titleMedium!.color);
 
     // Test popup menu item with a ListTile widget.
     expect(_labelStyle(tester, 'Item 1')!.fontSize, 16.0);
-    expect(_labelStyle(tester, 'Item 1')!.color, theme.textTheme.subtitle1!.color);
+    expect(_labelStyle(tester, 'Item 1')!.color, theme.textTheme.titleMedium!.color);
 
     // Close the menu.
     await tester.tapAt(const Offset(20.0, 20.0));
@@ -3721,9 +4048,7 @@ void main() {
       fontWeight: FontWeight.bold,
       fontStyle: FontStyle.italic,
     );
-    theme = theme.copyWith(
-      textTheme: const TextTheme(subtitle1: customTextStyle),
-    );
+    theme = theme.copyWith(textTheme: const TextTheme(titleMedium: customTextStyle));
     await tester.pumpWidget(buildMenu());
 
     // Show the menu.
@@ -3741,7 +4066,9 @@ void main() {
     expect(_labelStyle(tester, 'Item 1')!.fontStyle, customTextStyle.fontStyle);
   });
 
-  testWidgetsWithLeakTracking('CheckedPopupMenuItem.onTap callback is called when defined', (WidgetTester tester) async {
+  testWidgets('CheckedPopupMenuItem.onTap callback is called when defined', (
+    WidgetTester tester,
+  ) async {
     int count = 0;
     await tester.pumpWidget(
       TestApp(
@@ -3751,7 +4078,7 @@ void main() {
             child: PopupMenuButton<String>(
               child: const Text('button'),
               itemBuilder: (BuildContext context) {
-                  return  <PopupMenuItem<String>>[
+                return <PopupMenuItem<String>>[
                   CheckedPopupMenuItem<String>(
                     onTap: () {
                       count += 1;
@@ -3785,14 +4112,628 @@ void main() {
     await tester.pumpAndSettle();
     expect(count, 1);
   });
+
+  testWidgets('PopupMenuButton uses root navigator if useRootNavigator is true', (
+    WidgetTester tester,
+  ) async {
+    final MenuObserver rootObserver = MenuObserver();
+    final MenuObserver nestedObserver = MenuObserver();
+
+    await tester.pumpWidget(
+      MaterialApp(
+        navigatorObservers: <NavigatorObserver>[rootObserver],
+        home: Navigator(
+          observers: <NavigatorObserver>[nestedObserver],
+          onGenerateRoute: (RouteSettings settings) {
+            return MaterialPageRoute<dynamic>(
+              builder: (BuildContext context) {
+                return Material(
+                  child: PopupMenuButton<String>(
+                    useRootNavigator: true,
+                    child: const Text('button'),
+                    itemBuilder: (BuildContext context) {
+                      return <PopupMenuItem<String>>[
+                        const CheckedPopupMenuItem<String>(value: 'item1', child: Text('item 1')),
+                        const CheckedPopupMenuItem<String>(value: 'item2', child: Text('item 2')),
+                      ];
+                    },
+                  ),
+                );
+              },
+            );
+          },
+        ),
+      ),
+    );
+
+    // Open the dialog.
+    await tester.tap(find.text('button'));
+
+    expect(rootObserver.menuCount, 1);
+    expect(nestedObserver.menuCount, 0);
+  });
+
+  testWidgets('PopupMenuButton does not use root navigator if useRootNavigator is false', (
+    WidgetTester tester,
+  ) async {
+    final MenuObserver rootObserver = MenuObserver();
+    final MenuObserver nestedObserver = MenuObserver();
+
+    await tester.pumpWidget(
+      MaterialApp(
+        navigatorObservers: <NavigatorObserver>[rootObserver],
+        home: Navigator(
+          observers: <NavigatorObserver>[nestedObserver],
+          onGenerateRoute: (RouteSettings settings) {
+            return MaterialPageRoute<dynamic>(
+              builder: (BuildContext context) {
+                return Material(
+                  child: PopupMenuButton<String>(
+                    child: const Text('button'),
+                    itemBuilder: (BuildContext context) {
+                      return <PopupMenuItem<String>>[
+                        const CheckedPopupMenuItem<String>(value: 'item1', child: Text('item 1')),
+                        const CheckedPopupMenuItem<String>(value: 'item2', child: Text('item 2')),
+                      ];
+                    },
+                  ),
+                );
+              },
+            );
+          },
+        ),
+      ),
+    );
+
+    // Open the dialog.
+    await tester.tap(find.text('button'));
+
+    expect(rootObserver.menuCount, 0);
+    expect(nestedObserver.menuCount, 1);
+  });
+
+  testWidgets('Override Popup Menu animation using AnimationStyle', (WidgetTester tester) async {
+    final Key targetKey = UniqueKey();
+
+    Widget buildPopupMenu({AnimationStyle? animationStyle}) {
+      return MaterialApp(
+        home: Material(
+          child: Center(
+            child: PopupMenuButton<int>(
+              key: targetKey,
+              popUpAnimationStyle: animationStyle,
+              itemBuilder: (BuildContext context) {
+                return <PopupMenuItem<int>>[
+                  const PopupMenuItem<int>(value: 1, child: Text('One')),
+                  const PopupMenuItem<int>(value: 2, child: Text('Two')),
+                  const PopupMenuItem<int>(value: 3, child: Text('Three')),
+                ];
+              },
+            ),
+          ),
+        ),
+      );
+    }
+
+    // Test default animation.
+    await tester.pumpWidget(buildPopupMenu());
+
+    await tester.tap(find.byKey(targetKey));
+    await tester.pump();
+    await tester.pump(
+      const Duration(milliseconds: 100),
+    ); // Advance the animation by 1/3 of its duration.
+
+    expect(
+      tester.getSize(find.byType(Material).last),
+      within(distance: 0.1, from: const Size(112.0, 80.0)),
+    );
+
+    await tester.pump(
+      const Duration(milliseconds: 100),
+    ); // Advance the animation by 2/3 of its duration.
+
+    expect(
+      tester.getSize(find.byType(Material).last),
+      within(distance: 0.1, from: const Size(112.0, 160.0)),
+    );
+
+    await tester.pumpAndSettle(); // Advance the animation to the end.
+
+    expect(
+      tester.getSize(find.byType(Material).last),
+      within(distance: 0.1, from: const Size(112.0, 160.0)),
+    );
+
+    // Tap outside to dismiss the menu.
+    await tester.tapAt(const Offset(20.0, 20.0));
+    await tester.pumpAndSettle();
+
+    // Override the animation duration.
+    await tester.pumpWidget(
+      buildPopupMenu(animationStyle: const AnimationStyle(duration: Duration.zero)),
+    );
+
+    await tester.tap(find.byKey(targetKey));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 1)); // Advance the animation by 1 millisecond.
+
+    expect(
+      tester.getSize(find.byType(Material).last),
+      within(distance: 0.1, from: const Size(112.0, 160.0)),
+    );
+
+    // Tap outside to dismiss the menu.
+    await tester.tapAt(const Offset(20.0, 20.0));
+    await tester.pumpAndSettle();
+
+    // Override the animation curve.
+    await tester.pumpWidget(
+      buildPopupMenu(animationStyle: const AnimationStyle(curve: Easing.emphasizedAccelerate)),
+    );
+
+    await tester.tap(find.byKey(targetKey));
+    await tester.pump();
+    await tester.pump(
+      const Duration(milliseconds: 100),
+    ); // Advance the animation by 1/3 of its duration.
+
+    expect(
+      tester.getSize(find.byType(Material).last),
+      within(distance: 0.1, from: const Size(32.4, 15.4)),
+    );
+
+    await tester.pump(
+      const Duration(milliseconds: 100),
+    ); // Advance the animation by 2/3 of its duration.
+
+    expect(
+      tester.getSize(find.byType(Material).last),
+      within(distance: 0.1, from: const Size(112.0, 72.2)),
+    );
+
+    await tester.pumpAndSettle(); // Advance the animation to the end.
+
+    expect(
+      tester.getSize(find.byType(Material).last),
+      within(distance: 0.1, from: const Size(112.0, 160.0)),
+    );
+  });
+
+  testWidgets('PopupMenuButton scrolls initial value/selected value to visible', (
+    WidgetTester tester,
+  ) async {
+    const int length = 50;
+    const int selectedValue = length - 1;
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: Align(
+            alignment: Alignment.bottomCenter,
+            child: PopupMenuButton<int>(
+              itemBuilder: (BuildContext context) {
+                return List<PopupMenuEntry<int>>.generate(length, (int index) {
+                  return PopupMenuItem<int>(value: index, child: Text('item #$index'));
+                });
+              },
+              popUpAnimationStyle: AnimationStyle.noAnimation,
+              initialValue: selectedValue,
+              child: const Text('click here'),
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.tap(find.text('click here'));
+    await tester.pump();
+
+    // Set up finder and verify basic widget structure.
+    final Finder item49 = find.text('item #49');
+    expect(item49, findsOneWidget);
+
+    // The initially selected menu item should be positioned on screen.
+    final RenderBox initialItem = tester.renderObject<RenderBox>(item49);
+    final Rect initialItemBounds = initialItem.localToGlobal(Offset.zero) & initialItem.size;
+    final Size windowSize = tester.view.physicalSize / tester.view.devicePixelRatio;
+    expect(initialItemBounds.bottomRight.dy, lessThanOrEqualTo(windowSize.height));
+
+    // Select item 20.
+    final Finder item20 = find.text('item #20');
+    await tester.scrollUntilVisible(item20, 500);
+    expect(item20, findsOneWidget);
+    await tester.tap(item20);
+    await tester.pump();
+
+    // Open menu again.
+    await tester.tap(find.text('click here'));
+    await tester.pump();
+    expect(item20, findsOneWidget);
+
+    // The selected menu item should be positioned on screen.
+    final RenderBox selectedItem = tester.renderObject<RenderBox>(item20);
+    final Rect selectedItemBounds = selectedItem.localToGlobal(Offset.zero) & selectedItem.size;
+    expect(selectedItemBounds.bottomRight.dy, lessThanOrEqualTo(windowSize.height));
+  });
+
+  testWidgets('PopupMenuButton properly positions a constrained-size popup', (
+    WidgetTester tester,
+  ) async {
+    final Size windowSize = tester.view.physicalSize / tester.view.devicePixelRatio;
+    const int length = 50;
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: Padding(
+            padding: const EdgeInsets.all(50),
+            child: Align(
+              alignment: Alignment.bottomCenter,
+              child: PopupMenuButton<int>(
+                itemBuilder: (BuildContext context) {
+                  return List<PopupMenuEntry<int>>.generate(length, (int index) {
+                    return PopupMenuItem<int>(value: index, child: Text('item #$index'));
+                  });
+                },
+                constraints: BoxConstraints(maxHeight: windowSize.height / 3),
+                popUpAnimationStyle: AnimationStyle.noAnimation,
+                initialValue: length - 1,
+                child: const Text('click here'),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.tap(find.text('click here'));
+    await tester.pump();
+
+    // Set up finders and verify basic widget structure
+    final Finder findButton = find.byType(PopupMenuButton<int>);
+    final Finder findLastItem = find.text('item #49');
+    final Finder findListBody = find.byType(ListBody);
+    final Finder findListViewport = find.ancestor(
+      of: findListBody,
+      matching: find.byType(SingleChildScrollView),
+    );
+    expect(findButton, findsOne);
+    expect(findLastItem, findsOne);
+    expect(findListBody, findsOne);
+    expect(findListViewport, findsOne);
+
+    // The button and the list viewport should overlap
+    final RenderBox button = tester.renderObject<RenderBox>(findButton);
+    final Rect buttonBounds = button.localToGlobal(Offset.zero) & button.size;
+    final RenderBox listViewport = tester.renderObject<RenderBox>(findListViewport);
+    final Rect listViewportBounds = listViewport.localToGlobal(Offset.zero) & listViewport.size;
+    expect(listViewportBounds.topLeft.dy, lessThanOrEqualTo(windowSize.height));
+    expect(listViewportBounds.bottomRight.dy, lessThanOrEqualTo(windowSize.height));
+    expect(listViewportBounds, overlaps(buttonBounds));
+  });
+
+  testWidgets('PopupMenuButton honors style', (WidgetTester tester) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: PopupMenuButton<int>(
+            style: const ButtonStyle(iconColor: MaterialStatePropertyAll<Color>(Colors.red)),
+            itemBuilder: (BuildContext context) {
+              return <PopupMenuItem<int>>[const PopupMenuItem<int>(value: 1, child: Text('One'))];
+            },
+          ),
+        ),
+      ),
+    );
+    final RichText iconText = tester.firstWidget(
+      find.descendant(of: find.byType(PopupMenuButton<int>), matching: find.byType(RichText)),
+    );
+    expect(iconText.text.style?.color, Colors.red);
+  });
+
+  testWidgets("Popup menu child's InkWell borderRadius", (WidgetTester tester) async {
+    final BorderRadius borderRadius = BorderRadius.circular(20);
+
+    Widget buildPopupMenu({required BorderRadius? borderRadius}) {
+      return MaterialApp(
+        home: Scaffold(
+          body: Center(
+            child: PopupMenuButton<String>(
+              borderRadius: borderRadius,
+              itemBuilder: (_) => <PopupMenuEntry<String>>[
+                const PopupMenuItem<String>(value: 'value', child: Text('Item 0')),
+              ],
+              child: const Row(
+                mainAxisSize: MainAxisSize.min,
+                children: <Widget>[Text('Pop up menu'), Icon(Icons.arrow_drop_down)],
+              ),
+            ),
+          ),
+        ),
+      );
+    }
+
+    // Popup menu with default null borderRadius.
+    await tester.pumpWidget(buildPopupMenu(borderRadius: null));
+    await tester.pumpAndSettle();
+
+    InkWell inkWell = tester.widget<InkWell>(find.byType(InkWell));
+    expect(inkWell.borderRadius, isNull);
+
+    // Popup menu with fixed borderRadius.
+    await tester.pumpWidget(buildPopupMenu(borderRadius: borderRadius));
+    await tester.pumpAndSettle();
+
+    inkWell = tester.widget<InkWell>(find.byType(InkWell));
+    expect(inkWell.borderRadius, borderRadius);
+  });
+
+  testWidgets('PopupMenuButton respects materialTapTargetSize', (WidgetTester tester) async {
+    const double buttonSize = 10.0;
+
+    Widget buildPopupMenu({required MaterialTapTargetSize tapTargetSize}) {
+      return MaterialApp(
+        home: Scaffold(
+          body: Center(
+            child: PopupMenuButton<String>(
+              style: ButtonStyle(tapTargetSize: tapTargetSize),
+              itemBuilder: (_) => <PopupMenuEntry<String>>[
+                const PopupMenuItem<String>(value: 'value', child: Text('Item 0')),
+              ],
+              child: const SizedBox(height: buttonSize, width: buttonSize),
+            ),
+          ),
+        ),
+      );
+    }
+
+    // Popup menu with MaterialTapTargetSize.padded.
+    await tester.pumpWidget(buildPopupMenu(tapTargetSize: MaterialTapTargetSize.padded));
+    await tester.pumpAndSettle();
+
+    expect(tester.getSize(find.byType(InkWell)), const Size(48.0, 48.0));
+
+    // Popup menu with MaterialTapTargetSize.shrinkWrap.
+    await tester.pumpWidget(buildPopupMenu(tapTargetSize: MaterialTapTargetSize.shrinkWrap));
+    await tester.pumpAndSettle();
+
+    expect(tester.getSize(find.byType(InkWell)), const Size(buttonSize, buttonSize));
+  });
+
+  testWidgets(
+    'If requestFocus is false, the original focus should be preserved upon menu appearance.',
+    (WidgetTester tester) async {
+      final FocusNode fieldFocusNode = FocusNode();
+      addTearDown(fieldFocusNode.dispose);
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: Column(
+              children: <Widget>[
+                TextField(focusNode: fieldFocusNode, autofocus: true),
+                PopupMenuButton<int>(
+                  style: const ButtonStyle(iconColor: MaterialStatePropertyAll<Color>(Colors.red)),
+                  itemBuilder: (BuildContext context) {
+                    return <PopupMenuItem<int>>[
+                      const PopupMenuItem<int>(value: 1, child: Text('One')),
+                    ];
+                  },
+                  requestFocus: false,
+                  child: const Text('click here'),
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+      expect(fieldFocusNode.hasFocus, isTrue);
+      await tester.tap(find.text('click here'));
+      await tester.pump();
+      expect(fieldFocusNode.hasFocus, isTrue);
+    },
+  );
+
+  // Regression test for https://github.com/flutter/flutter/issues/152475
+  testWidgets('PopupMenuButton updates position on orientation change', (
+    WidgetTester tester,
+  ) async {
+    const Size initialSize = Size(400, 800);
+    const Size newSize = Size(1024, 768);
+
+    await tester.binding.setSurfaceSize(initialSize);
+
+    final GlobalKey buttonKey = GlobalKey();
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: Center(
+            child: PopupMenuButton<int>(
+              key: buttonKey,
+              itemBuilder: (BuildContext context) => <PopupMenuItem<int>>[
+                const PopupMenuItem<int>(value: 1, child: Text('Option 1')),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+
+    await tester.tap(find.byType(PopupMenuButton<int>));
+    await tester.pumpAndSettle();
+
+    final Rect initialButtonRect = tester.getRect(find.byKey(buttonKey));
+    final Rect initialMenuRect = tester.getRect(find.text('Option 1'));
+
+    await tester.binding.setSurfaceSize(newSize);
+    await tester.pumpAndSettle();
+
+    final Rect newButtonRect = tester.getRect(find.byKey(buttonKey));
+    final Rect newMenuRect = tester.getRect(find.text('Option 1'));
+
+    expect(newButtonRect, isNot(equals(initialButtonRect)));
+
+    expect(newMenuRect, isNot(equals(initialMenuRect)));
+
+    expect(
+      newMenuRect.topLeft - newButtonRect.topLeft,
+      initialMenuRect.topLeft - initialButtonRect.topLeft,
+    );
+
+    await tester.binding.setSurfaceSize(null);
+  });
+
+  testWidgets('PopupMenuDivider custom thickness', (WidgetTester tester) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: Center(
+            child: PopupMenuButton<String>(
+              onSelected: (String result) {},
+              child: const Text('Menu Button'),
+              itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
+                const PopupMenuDivider(thickness: 5.0),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+
+    await tester.tap(find.byType(PopupMenuButton<String>));
+    await tester.pump();
+    final Container container = tester.widget(find.byType(Container));
+    final BoxDecoration decoration = container.decoration! as BoxDecoration;
+    expect(decoration.border!.bottom.width, 5.0);
+  });
+
+  testWidgets('PopupMenuDivider custom indent', (WidgetTester tester) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: Center(
+            child: PopupMenuButton<String>(
+              onSelected: (String result) {},
+              child: const Text('Menu Button'),
+              itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
+                const PopupMenuDivider(indent: 5.0),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+
+    await tester.tap(find.byType(PopupMenuButton<String>));
+    await tester.pump();
+    final Container container = tester.widget(find.byType(Container));
+    final EdgeInsetsDirectional margin = container.margin! as EdgeInsetsDirectional;
+    expect(margin.start, 5.0);
+  });
+
+  testWidgets('PopupMenuDivider custom color', (WidgetTester tester) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: Center(
+            child: PopupMenuButton<String>(
+              onSelected: (String result) {},
+              child: const Text('Menu Button'),
+              itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
+                const PopupMenuDivider(color: Colors.deepOrange),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+
+    await tester.tap(find.byType(PopupMenuButton<String>));
+    await tester.pump();
+    final Container container = tester.widget(find.byType(Container));
+    final BoxDecoration decoration = container.decoration! as BoxDecoration;
+    expect(decoration.border!.bottom.color, Colors.deepOrange);
+  });
+
+  testWidgets('PopupMenuDivider custom end indent', (WidgetTester tester) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: Center(
+            child: PopupMenuButton<String>(
+              onSelected: (String result) {},
+              child: const Text('Menu Button'),
+              itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
+                const PopupMenuDivider(endIndent: 5.0),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+
+    await tester.tap(find.byType(PopupMenuButton<String>));
+    await tester.pump();
+    final Container container = tester.widget(find.byType(Container));
+    final EdgeInsetsDirectional margin = container.margin! as EdgeInsetsDirectional;
+    expect(margin.end, 5.0);
+  });
+
+  testWidgets('PopupMenuDivider custom radius', (WidgetTester tester) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: Center(
+            child: PopupMenuButton<String>(
+              onSelected: (String result) {},
+              child: const Text('Menu Button'),
+              itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
+                PopupMenuDivider(radius: BorderRadius.circular(5)),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+
+    await tester.tap(find.byType(PopupMenuButton<String>));
+    await tester.pump();
+    final Container container = tester.widget(find.byType(Container));
+    final BoxDecoration decoration = container.decoration! as BoxDecoration;
+    final BorderRadius borderRadius = decoration.borderRadius! as BorderRadius;
+    expect(borderRadius.bottomLeft, const Radius.circular(5));
+    expect(borderRadius.bottomRight, const Radius.circular(5));
+    expect(borderRadius.topLeft, const Radius.circular(5));
+    expect(borderRadius.topRight, const Radius.circular(5));
+  });
+}
+
+Matcher overlaps(Rect other) => OverlapsMatcher(other);
+
+class OverlapsMatcher extends Matcher {
+  OverlapsMatcher(this.other);
+
+  final Rect other;
+
+  @override
+  Description describe(Description description) {
+    return description.add('<Rect that overlaps with $other>');
+  }
+
+  @override
+  bool matches(Object? item, Map<dynamic, dynamic> matchState) =>
+      item is Rect && item.overlaps(other);
+
+  @override
+  Description describeMismatch(
+    dynamic item,
+    Description mismatchDescription,
+    Map<dynamic, dynamic> matchState,
+    bool verbose,
+  ) {
+    return mismatchDescription.add('does not overlap');
+  }
 }
 
 class TestApp extends StatelessWidget {
-  const TestApp({
-    super.key,
-    required this.textDirection,
-    this.child,
-  });
+  const TestApp({super.key, required this.textDirection, this.child});
 
   final TextDirection textDirection;
   final Widget? child;
@@ -3814,9 +4755,7 @@ class TestApp extends StatelessWidget {
               assert(settings.name == '/');
               return MaterialPageRoute<void>(
                 settings: settings,
-                builder: (BuildContext context) => Material(
-                  child: child,
-                ),
+                builder: (BuildContext context) => Material(child: child),
               );
             },
           ),
@@ -3850,22 +4789,23 @@ class _ClosureNavigatorObserver extends NavigatorObserver {
   void didPop(Route<dynamic> route, Route<dynamic>? previousRoute) => onDidChange(previousRoute!);
 
   @override
-  void didRemove(Route<dynamic> route, Route<dynamic>? previousRoute) => onDidChange(previousRoute!);
+  void didRemove(Route<dynamic> route, Route<dynamic>? previousRoute) =>
+      onDidChange(previousRoute!);
 
   @override
   void didReplace({Route<dynamic>? newRoute, Route<dynamic>? oldRoute}) => onDidChange(newRoute!);
 }
 
 TextStyle? _labelStyle(WidgetTester tester, String label) {
-  return tester.widget<RichText>(find.descendant(
-    of: find.text(label),
-    matching: find.byType(RichText),
-  )).text.style;
+  return tester
+      .widget<RichText>(find.descendant(of: find.text(label), matching: find.byType(RichText)))
+      .text
+      .style;
 }
 
 TextStyle? _iconStyle(WidgetTester tester, IconData icon) {
-  return tester.widget<RichText>(find.descendant(
-    of: find.byIcon(icon),
-    matching: find.byType(RichText),
-  )).text.style;
+  return tester
+      .widget<RichText>(find.descendant(of: find.byIcon(icon), matching: find.byType(RichText)))
+      .text
+      .style;
 }

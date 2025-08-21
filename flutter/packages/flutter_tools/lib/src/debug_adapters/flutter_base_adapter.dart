@@ -11,11 +11,13 @@ import '../base/file_system.dart';
 import '../base/io.dart';
 import '../base/platform.dart';
 import '../cache.dart';
+import '../convert.dart';
 import 'flutter_adapter_args.dart';
 import 'mixins.dart';
 
 /// A base DAP Debug Adapter for Flutter applications and tests.
-abstract class FlutterBaseDebugAdapter extends DartDebugAdapter<FlutterLaunchRequestArguments, FlutterAttachRequestArguments>
+abstract class FlutterBaseDebugAdapter
+    extends DartDebugAdapter<FlutterLaunchRequestArguments, FlutterAttachRequestArguments>
     with PidTracker {
   FlutterBaseDebugAdapter(
     super.channel, {
@@ -26,12 +28,9 @@ abstract class FlutterBaseDebugAdapter extends DartDebugAdapter<FlutterLaunchReq
     super.enableAuthCodes,
     super.logger,
     super.onError,
-  }) : flutterSdkRoot = Cache.flutterRoot!,
-      // Always disable in the DAP layer as it's handled in the spawned
-      // 'flutter' process.
-      super(enableDds: false) {
-        configureOrgDartlangSdkMappings();
-      }
+  }) : flutterSdkRoot = Cache.flutterRoot! {
+    configureOrgDartlangSdkMappings();
+  }
 
   FileSystem fileSystem;
   Platform platform;
@@ -46,12 +45,12 @@ abstract class FlutterBaseDebugAdapter extends DartDebugAdapter<FlutterLaunchReq
   final bool enableFlutterDds;
 
   @override
-  final FlutterLaunchRequestArguments Function(Map<String, Object?> obj)
-      parseLaunchArgs = FlutterLaunchRequestArguments.fromJson;
+  final FlutterLaunchRequestArguments Function(Map<String, Object?> obj) parseLaunchArgs =
+      FlutterLaunchRequestArguments.fromJson;
 
   @override
-  final FlutterAttachRequestArguments Function(Map<String, Object?> obj)
-      parseAttachArgs = FlutterAttachRequestArguments.fromJson;
+  final FlutterAttachRequestArguments Function(Map<String, Object?> obj) parseAttachArgs =
+      FlutterAttachRequestArguments.fromJson;
 
   /// Whether the VM Service closing should be used as a signal to terminate the debug session.
   ///
@@ -97,12 +96,28 @@ abstract class FlutterBaseDebugAdapter extends DartDebugAdapter<FlutterLaunchReq
     orgDartlangSdkMappings.clear();
 
     // 'dart:ui' maps to /flutter/lib/ui
-    final String flutterRoot = fileSystem.path.join(flutterSdkRoot, 'bin', 'cache', 'pkg', 'sky_engine', 'lib', 'ui');
+    final String flutterRoot = fileSystem.path.join(
+      flutterSdkRoot,
+      'bin',
+      'cache',
+      'pkg',
+      'sky_engine',
+      'lib',
+      'ui',
+    );
     orgDartlangSdkMappings[flutterRoot] = Uri.parse('org-dartlang-sdk:///flutter/lib/ui');
 
-    // The rest of the Dart SDK maps to /third_party/dart/sdk
-    final String dartRoot = fileSystem.path.join(flutterSdkRoot, 'bin', 'cache', 'pkg', 'sky_engine');
-    orgDartlangSdkMappings[dartRoot] = Uri.parse('org-dartlang-sdk:///third_party/dart/sdk');
+    // The rest of the Dart SDK maps to /flutter/third_party/dart/sdk
+    final String dartRoot = fileSystem.path.join(
+      flutterSdkRoot,
+      'bin',
+      'cache',
+      'pkg',
+      'sky_engine',
+    );
+    orgDartlangSdkMappings[dartRoot] = Uri.parse(
+      'org-dartlang-sdk:///flutter/third_party/dart/sdk',
+    );
   }
 
   @override
@@ -111,7 +126,7 @@ abstract class FlutterBaseDebugAdapter extends DartDebugAdapter<FlutterLaunchReq
     // terminating, however for Flutter apps it may be running on a remote
     // device so it's not valid to terminate a process with that pid locally.
     // For attach, pids should never be collected as terminateRequest() should
-    // not terminate the debugee.
+    // not terminate the debugger.
   }
 
   /// Called by [disconnectRequest] to request that we forcefully shut down the app being run (or in the case of an attach, disconnect).
@@ -132,29 +147,30 @@ abstract class FlutterBaseDebugAdapter extends DartDebugAdapter<FlutterLaunchReq
     required List<String> processArgs,
     required Map<String, String>? env,
   }) async {
-    final Process process = await (
-      String executable,
-      List<String> processArgs, {
-      required Map<String, String>? env,
-    }) async {
-      logger?.call('Spawning $executable with $processArgs in ${args.cwd}');
-      final Process process = await Process.start(
-        executable,
-        processArgs,
-        workingDirectory: args.cwd,
-        environment: env,
-      );
-      pidsToTerminate.add(process.pid);
-      return process;
-    }(executable, processArgs, env: env);
+    final Process process =
+        await (
+          String executable,
+          List<String> processArgs, {
+          required Map<String, String>? env,
+        }) async {
+          logger?.call('Spawning $executable with $processArgs in ${args.cwd}');
+          final Process process = await Process.start(
+            executable,
+            processArgs,
+            workingDirectory: args.cwd,
+            environment: env,
+          );
+          pidsToTerminate.add(process.pid);
+          return process;
+        }(executable, processArgs, env: env);
     this.process = process;
 
     process.stdout.transform(ByteToLineTransformer()).listen(handleStdout);
-    process.stderr.listen(handleStderr);
+    process.stderr.transform(utf8.decoder).listen(handleStderr);
     unawaited(process.exitCode.then(handleExitCode));
   }
 
   void handleExitCode(int code);
-  void handleStderr(List<int> data);
+  void handleStderr(String data);
   void handleStdout(String data);
 }

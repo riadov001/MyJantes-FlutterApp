@@ -8,7 +8,6 @@ import '../android/android_sdk.dart';
 import '../base/file_system.dart';
 import '../base/logger.dart';
 import '../base/os.dart';
-import '../build_info.dart';
 import '../build_system/build_system.dart';
 import '../commands/build_linux.dart';
 import '../commands/build_macos.dart';
@@ -31,42 +30,40 @@ class BuildCommand extends FlutterCommand {
     required Logger logger,
     required AndroidSdk? androidSdk,
     bool verboseHelp = false,
-  }){
+  }) {
     _addSubcommand(
-        BuildAarCommand(
-          fileSystem: fileSystem,
-          androidSdk: androidSdk,
-          logger: logger,
-          verboseHelp: verboseHelp,
-        )
+      BuildAarCommand(
+        fileSystem: fileSystem,
+        androidSdk: androidSdk,
+        logger: logger,
+        verboseHelp: verboseHelp,
+      ),
     );
     _addSubcommand(BuildApkCommand(logger: logger, verboseHelp: verboseHelp));
     _addSubcommand(BuildAppBundleCommand(logger: logger, verboseHelp: verboseHelp));
     _addSubcommand(BuildIOSCommand(logger: logger, verboseHelp: verboseHelp));
-    _addSubcommand(BuildIOSFrameworkCommand(
-      logger: logger,
-      buildSystem: buildSystem,
-      verboseHelp: verboseHelp,
-    ));
-    _addSubcommand(BuildMacOSFrameworkCommand(
-      logger: logger,
-      buildSystem: buildSystem,
-      verboseHelp: verboseHelp,
-    ));
+    _addSubcommand(
+      BuildIOSFrameworkCommand(logger: logger, buildSystem: buildSystem, verboseHelp: verboseHelp),
+    );
+    _addSubcommand(
+      BuildMacOSFrameworkCommand(
+        logger: logger,
+        buildSystem: buildSystem,
+        verboseHelp: verboseHelp,
+      ),
+    );
     _addSubcommand(BuildIOSArchiveCommand(logger: logger, verboseHelp: verboseHelp));
     _addSubcommand(BuildBundleCommand(logger: logger, verboseHelp: verboseHelp));
-    _addSubcommand(BuildWebCommand(
-      fileSystem: fileSystem,
-      logger: logger,
-      verboseHelp: verboseHelp,
-    ));
+    _addSubcommand(
+      BuildWebCommand(fileSystem: fileSystem, logger: logger, verboseHelp: verboseHelp),
+    );
     _addSubcommand(BuildMacosCommand(logger: logger, verboseHelp: verboseHelp));
-    _addSubcommand(BuildLinuxCommand(
-      logger: logger,
-      operatingSystemUtils: osUtils,
-      verboseHelp: verboseHelp
-    ));
-    _addSubcommand(BuildWindowsCommand(logger: logger, verboseHelp: verboseHelp));
+    _addSubcommand(
+      BuildLinuxCommand(logger: logger, operatingSystemUtils: osUtils, verboseHelp: verboseHelp),
+    );
+    _addSubcommand(
+      BuildWindowsCommand(logger: logger, operatingSystemUtils: osUtils, verboseHelp: verboseHelp),
+    );
   }
 
   void _addSubcommand(BuildSubCommand command) {
@@ -76,10 +73,10 @@ class BuildCommand extends FlutterCommand {
   }
 
   @override
-  final String name = 'build';
+  final name = 'build';
 
   @override
-  final String description = 'Build an executable app or install bundle.';
+  final description = 'Build an executable app or install bundle.';
 
   @override
   String get category => FlutterCommandCategory.project;
@@ -89,37 +86,14 @@ class BuildCommand extends FlutterCommand {
 }
 
 abstract class BuildSubCommand extends FlutterCommand {
-  BuildSubCommand({
-    required Logger logger,
-    required bool verboseHelp
-  }): _logger = logger {
+  BuildSubCommand({required this.logger, required bool verboseHelp}) {
     requiresPubspecYaml();
     usesFatalWarningsOption(verboseHelp: verboseHelp);
   }
 
-  final Logger _logger;
-
-  @override
-  bool get reportNullSafety => true;
-
-  bool get supported => true;
-
-  /// Display a message describing the current null safety runtime mode
-  /// that was selected.
-  ///
-  /// This is similar to the run message in run_hot.dart
   @protected
-  void displayNullSafetyMode(BuildInfo buildInfo) {
-    if (buildInfo.nullSafetyMode != NullSafetyMode.sound) {
-      _logger.printStatus('');
-      _logger.printStatus(
-        'Building without sound null safety ⚠️',
-        emphasis: true,
-      );
-      _logger.printStatus(
-        'Dart 3 will only support sound null safety, see https://dart.dev/null-safety',
-      );
-    }
-    _logger.printStatus('');
-  }
+  final Logger logger;
+
+  /// Whether this command is supported and should be shown.
+  bool get supported => true;
 }

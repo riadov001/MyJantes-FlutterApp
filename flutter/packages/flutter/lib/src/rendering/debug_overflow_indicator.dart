@@ -2,6 +2,10 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+/// @docImport 'flex.dart';
+/// @docImport 'shifted_box.dart';
+library;
+
 import 'dart:math' as math;
 import 'dart:ui' as ui;
 
@@ -11,12 +15,7 @@ import 'object.dart';
 import 'stack.dart';
 
 // Describes which side the region data overflows on.
-enum _OverflowSide {
-  left,
-  top,
-  bottom,
-  right,
-}
+enum _OverflowSide { left, top, bottom, right }
 
 // Data used by the DebugOverflowIndicator to manage the regions and labels for
 // the indicators.
@@ -109,9 +108,10 @@ mixin DebugOverflowIndicatorMixin on RenderObject {
     );
   static final Paint _labelBackgroundPaint = Paint()..color = const Color(0xFFFFFFFF);
 
-  final List<TextPainter> _indicatorLabel = List<TextPainter>.filled(
+  final List<TextPainter> _indicatorLabel = List<TextPainter>.generate(
     _OverflowSide.values.length,
-    TextPainter(textDirection: TextDirection.ltr), // This label is in English.
+    (int i) => TextPainter(textDirection: TextDirection.ltr), // This label is in English.
+    growable: false,
   );
 
   @override
@@ -128,15 +128,11 @@ mixin DebugOverflowIndicatorMixin on RenderObject {
 
   String _formatPixels(double value) {
     assert(value > 0.0);
-    final String pixels;
-    if (value > 10.0) {
-      pixels = value.toStringAsFixed(0);
-    } else if (value > 1.0) {
-      pixels = value.toStringAsFixed(1);
-    } else {
-      pixels = value.toStringAsPrecision(3);
-    }
-    return pixels;
+    return switch (value) {
+      > 10.0 => value.toStringAsFixed(0),
+      > 1.0 => value.toStringAsFixed(1),
+      _ => value.toStringAsPrecision(3),
+    };
   }
 
   List<_OverflowRegionData> _calculateOverflowRegions(RelativeRect overflow, Rect containerRect) {
@@ -148,14 +144,17 @@ mixin DebugOverflowIndicatorMixin on RenderObject {
         containerRect.width * _indicatorFraction,
         containerRect.height,
       );
-      regions.add(_OverflowRegionData(
-        rect: markerRect,
-        label: 'LEFT OVERFLOWED BY ${_formatPixels(overflow.left)} PIXELS',
-        labelOffset: markerRect.centerLeft +
-            const Offset(_indicatorFontSizePixels + _indicatorLabelPaddingPixels, 0.0),
-        rotation: math.pi / 2.0,
-        side: _OverflowSide.left,
-      ));
+      regions.add(
+        _OverflowRegionData(
+          rect: markerRect,
+          label: 'LEFT OVERFLOWED BY ${_formatPixels(overflow.left)} PIXELS',
+          labelOffset:
+              markerRect.centerLeft +
+              const Offset(_indicatorFontSizePixels + _indicatorLabelPaddingPixels, 0.0),
+          rotation: math.pi / 2.0,
+          side: _OverflowSide.left,
+        ),
+      );
     }
     if (overflow.right > 0.0) {
       final Rect markerRect = Rect.fromLTWH(
@@ -164,14 +163,17 @@ mixin DebugOverflowIndicatorMixin on RenderObject {
         containerRect.width * _indicatorFraction,
         containerRect.height,
       );
-      regions.add(_OverflowRegionData(
-        rect: markerRect,
-        label: 'RIGHT OVERFLOWED BY ${_formatPixels(overflow.right)} PIXELS',
-        labelOffset: markerRect.centerRight -
-            const Offset(_indicatorFontSizePixels + _indicatorLabelPaddingPixels, 0.0),
-        rotation: -math.pi / 2.0,
-        side: _OverflowSide.right,
-      ));
+      regions.add(
+        _OverflowRegionData(
+          rect: markerRect,
+          label: 'RIGHT OVERFLOWED BY ${_formatPixels(overflow.right)} PIXELS',
+          labelOffset:
+              markerRect.centerRight -
+              const Offset(_indicatorFontSizePixels + _indicatorLabelPaddingPixels, 0.0),
+          rotation: -math.pi / 2.0,
+          side: _OverflowSide.right,
+        ),
+      );
     }
     if (overflow.top > 0.0) {
       final Rect markerRect = Rect.fromLTWH(
@@ -180,12 +182,14 @@ mixin DebugOverflowIndicatorMixin on RenderObject {
         containerRect.width,
         containerRect.height * _indicatorFraction,
       );
-      regions.add(_OverflowRegionData(
-        rect: markerRect,
-        label: 'TOP OVERFLOWED BY ${_formatPixels(overflow.top)} PIXELS',
-        labelOffset: markerRect.topCenter + const Offset(0.0, _indicatorLabelPaddingPixels),
-        side: _OverflowSide.top,
-      ));
+      regions.add(
+        _OverflowRegionData(
+          rect: markerRect,
+          label: 'TOP OVERFLOWED BY ${_formatPixels(overflow.top)} PIXELS',
+          labelOffset: markerRect.topCenter + const Offset(0.0, _indicatorLabelPaddingPixels),
+          side: _OverflowSide.top,
+        ),
+      );
     }
     if (overflow.bottom > 0.0) {
       final Rect markerRect = Rect.fromLTWH(
@@ -194,13 +198,16 @@ mixin DebugOverflowIndicatorMixin on RenderObject {
         containerRect.width,
         containerRect.height * _indicatorFraction,
       );
-      regions.add(_OverflowRegionData(
-        rect: markerRect,
-        label: 'BOTTOM OVERFLOWED BY ${_formatPixels(overflow.bottom)} PIXELS',
-        labelOffset: markerRect.bottomCenter -
-            const Offset(0.0, _indicatorFontSizePixels + _indicatorLabelPaddingPixels),
-        side: _OverflowSide.bottom,
-      ));
+      regions.add(
+        _OverflowRegionData(
+          rect: markerRect,
+          label: 'BOTTOM OVERFLOWED BY ${_formatPixels(overflow.bottom)} PIXELS',
+          labelOffset:
+              markerRect.bottomCenter -
+              const Offset(0.0, _indicatorFontSizePixels + _indicatorLabelPaddingPixels),
+          side: _OverflowSide.bottom,
+        ),
+      );
     }
     return regions;
   }
@@ -208,19 +215,23 @@ mixin DebugOverflowIndicatorMixin on RenderObject {
   void _reportOverflow(RelativeRect overflow, List<DiagnosticsNode>? overflowHints) {
     overflowHints ??= <DiagnosticsNode>[];
     if (overflowHints.isEmpty) {
-      overflowHints.add(ErrorDescription(
-        'The edge of the $runtimeType that is '
-        'overflowing has been marked in the rendering with a yellow and black '
-        'striped pattern. This is usually caused by the contents being too big '
-        'for the $runtimeType.',
-      ));
-      overflowHints.add(ErrorHint(
-        'This is considered an error condition because it indicates that there '
-        'is content that cannot be seen. If the content is legitimately bigger '
-        'than the available space, consider clipping it with a ClipRect widget '
-        'before putting it in the $runtimeType, or using a scrollable '
-        'container, like a ListView.',
-      ));
+      overflowHints.add(
+        ErrorDescription(
+          'The edge of the $runtimeType that is '
+          'overflowing has been marked in the rendering with a yellow and black '
+          'striped pattern. This is usually caused by the contents being too big '
+          'for the $runtimeType.',
+        ),
+      );
+      overflowHints.add(
+        ErrorHint(
+          'This is considered an error condition because it indicates that there '
+          'is content that cannot be seen. If the content is legitimately bigger '
+          'than the available space, consider clipping it with a ClipRect widget '
+          'before putting it in the $runtimeType, or using a scrollable '
+          'container, like a ListView.',
+        ),
+      );
     }
 
     final List<String> overflows = <String>[
@@ -230,7 +241,10 @@ mixin DebugOverflowIndicatorMixin on RenderObject {
       if (overflow.right > 0.0) '${_formatPixels(overflow.right)} pixels on the right',
     ];
     String overflowText = '';
-    assert(overflows.isNotEmpty, "Somehow $runtimeType didn't actually overflow like it thought it did.");
+    assert(
+      overflows.isNotEmpty,
+      "Somehow $runtimeType didn't actually overflow like it thought it did.",
+    );
     switch (overflows.length) {
       case 1:
         overflowText = overflows.first;
@@ -250,8 +264,7 @@ mixin DebugOverflowIndicatorMixin on RenderObject {
         informationCollector: () => <DiagnosticsNode>[
           // debugCreator should only be set in DebugMode, but we want the
           // treeshaker to know that.
-          if (kDebugMode && debugCreator != null)
-            DiagnosticsDebugCreator(debugCreator!),
+          if (kDebugMode && debugCreator != null) DiagnosticsDebugCreator(debugCreator!),
           ...overflowHints!,
           describeForError('The specific $runtimeType in question is'),
           // TODO(jacobr): this line is ascii art that it would be nice to
@@ -285,7 +298,10 @@ mixin DebugOverflowIndicatorMixin on RenderObject {
       return;
     }
 
-    final List<_OverflowRegionData> overflowRegions = _calculateOverflowRegions(overflow, containerRect);
+    final List<_OverflowRegionData> overflowRegions = _calculateOverflowRegions(
+      overflow,
+      containerRect,
+    );
     for (final _OverflowRegionData region in overflowRegions) {
       context.canvas.drawRect(region.rect.shift(offset), _indicatorPaint);
       final TextSpan? textSpan = _indicatorLabel[region.side.index].text as TextSpan?;

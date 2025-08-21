@@ -4,16 +4,10 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:leak_tracker_flutter_testing/leak_tracker_flutter_testing.dart';
 
 void main() {
-  testWidgetsWithLeakTracking('Material3 - Divider control test', (WidgetTester tester) async {
-    await tester.pumpWidget(
-      MaterialApp(
-        theme: ThemeData(useMaterial3: true),
-        home: const Center(child: Divider()),
-      ),
-    );
+  testWidgets('Material3 - Divider control test', (WidgetTester tester) async {
+    await tester.pumpWidget(const MaterialApp(home: Center(child: Divider())));
     final RenderBox box = tester.firstRenderObject(find.byType(Divider));
     expect(box.size.height, 16.0);
     final Container container = tester.widget(find.byType(Container));
@@ -21,7 +15,7 @@ void main() {
     expect(decoration.border!.bottom.width, 1.0);
   });
 
-  testWidgetsWithLeakTracking('Material2 - Divider control test', (WidgetTester tester) async {
+  testWidgets('Material2 - Divider control test', (WidgetTester tester) async {
     await tester.pumpWidget(
       MaterialApp(
         theme: ThemeData(useMaterial3: false),
@@ -35,7 +29,7 @@ void main() {
     expect(decoration.border!.bottom.width, 0.0);
   });
 
-  testWidgetsWithLeakTracking('Divider custom thickness', (WidgetTester tester) async {
+  testWidgets('Divider custom thickness', (WidgetTester tester) async {
     await tester.pumpWidget(
       const Directionality(
         textDirection: TextDirection.ltr,
@@ -47,7 +41,23 @@ void main() {
     expect(decoration.border!.bottom.width, 5.0);
   });
 
-  testWidgetsWithLeakTracking('Horizontal divider custom indentation', (WidgetTester tester) async {
+  testWidgets('Divider custom radius', (WidgetTester tester) async {
+    await tester.pumpWidget(
+      Directionality(
+        textDirection: TextDirection.ltr,
+        child: Center(child: Divider(radius: BorderRadius.circular(5))),
+      ),
+    );
+    final Container container = tester.widget(find.byType(Container));
+    final BoxDecoration decoration = container.decoration! as BoxDecoration;
+    final BorderRadius borderRadius = decoration.borderRadius! as BorderRadius;
+    expect(borderRadius.bottomLeft, const Radius.circular(5));
+    expect(borderRadius.bottomRight, const Radius.circular(5));
+    expect(borderRadius.topLeft, const Radius.circular(5));
+    expect(borderRadius.topRight, const Radius.circular(5));
+  });
+
+  testWidgets('Horizontal divider custom indentation', (WidgetTester tester) async {
     const double customIndent = 10.0;
     Rect dividerRect;
     Rect lineRect;
@@ -79,10 +89,7 @@ void main() {
       const Directionality(
         textDirection: TextDirection.ltr,
         child: Center(
-          child: Divider(
-            indent: customIndent,
-            endIndent: customIndent,
-          ),
+          child: Divider(indent: customIndent, endIndent: customIndent),
         ),
       ),
     );
@@ -92,13 +99,8 @@ void main() {
     expect(lineRect.right, dividerRect.right - customIndent);
   });
 
-  testWidgetsWithLeakTracking('Material3 - Vertical Divider Test', (WidgetTester tester) async {
-    await tester.pumpWidget(
-      MaterialApp(
-        theme: ThemeData(useMaterial3: true),
-        home: const Center(child: VerticalDivider()),
-      ),
-    );
+  testWidgets('Material3 - Vertical Divider Test', (WidgetTester tester) async {
+    await tester.pumpWidget(const MaterialApp(home: Center(child: VerticalDivider())));
     final RenderBox box = tester.firstRenderObject(find.byType(VerticalDivider));
     expect(box.size.width, 16.0);
     final Container container = tester.widget(find.byType(Container));
@@ -107,7 +109,7 @@ void main() {
     expect(border.left.width, 1.0);
   });
 
-  testWidgetsWithLeakTracking('Material2 - Vertical Divider Test', (WidgetTester tester) async {
+  testWidgets('Material2 - Vertical Divider Test', (WidgetTester tester) async {
     await tester.pumpWidget(
       MaterialApp(
         theme: ThemeData(useMaterial3: false),
@@ -122,7 +124,7 @@ void main() {
     expect(border.left.width, 0.0);
   });
 
-  testWidgetsWithLeakTracking('Divider custom thickness', (WidgetTester tester) async {
+  testWidgets('Divider custom thickness', (WidgetTester tester) async {
     await tester.pumpWidget(
       const Directionality(
         textDirection: TextDirection.ltr,
@@ -135,19 +137,14 @@ void main() {
     expect(border.left.width, 5.0);
   });
 
-  testWidgetsWithLeakTracking('Vertical Divider Test 2', (WidgetTester tester) async {
+  testWidgets('Vertical Divider Test 2', (WidgetTester tester) async {
     await tester.pumpWidget(
       MaterialApp(
         theme: ThemeData(useMaterial3: false),
         home: const Material(
           child: SizedBox(
             height: 24.0,
-            child: Row(
-              children: <Widget>[
-                Text('Hey.'),
-                VerticalDivider(),
-              ],
-            ),
+            child: Row(children: <Widget>[Text('Hey.'), VerticalDivider()]),
           ),
         ),
       ),
@@ -160,7 +157,7 @@ void main() {
     expect(find.byType(VerticalDivider), paints..path(strokeWidth: 0.0));
   });
 
-  testWidgetsWithLeakTracking('Vertical divider custom indentation', (WidgetTester tester) async {
+  testWidgets('Vertical divider custom indentation', (WidgetTester tester) async {
     const double customIndent = 10.0;
     Rect dividerRect;
     Rect lineRect;
@@ -192,10 +189,7 @@ void main() {
       const Directionality(
         textDirection: TextDirection.ltr,
         child: Center(
-          child: VerticalDivider(
-            indent: customIndent,
-            endIndent: customIndent,
-          ),
+          child: VerticalDivider(indent: customIndent, endIndent: customIndent),
         ),
       ),
     );
@@ -205,8 +199,26 @@ void main() {
     expect(lineRect.bottom, dividerRect.bottom - customIndent);
   });
 
+  testWidgets('VerticalDivider custom radius', (WidgetTester tester) async {
+    await tester.pumpWidget(
+      Directionality(
+        textDirection: TextDirection.ltr,
+        child: Center(child: VerticalDivider(radius: BorderRadius.circular(5))),
+      ),
+    );
+    final Container container = tester.widget(find.byType(Container));
+    final BoxDecoration decoration = container.decoration! as BoxDecoration;
+    final BorderRadius borderRadius = decoration.borderRadius! as BorderRadius;
+    expect(borderRadius.bottomLeft, const Radius.circular(5));
+    expect(borderRadius.bottomRight, const Radius.circular(5));
+    expect(borderRadius.topLeft, const Radius.circular(5));
+    expect(borderRadius.topRight, const Radius.circular(5));
+  });
+
   // Regression test for https://github.com/flutter/flutter/issues/39533
-  testWidgetsWithLeakTracking('createBorderSide does not throw exception with null context', (WidgetTester tester) async {
+  testWidgets('createBorderSide does not throw exception with null context', (
+    WidgetTester tester,
+  ) async {
     // Passing a null context used to throw an exception but no longer does.
     expect(() => Divider.createBorderSide(null), isNot(throwsAssertionError));
     expect(() => Divider.createBorderSide(null), isNot(throwsNoSuchMethodError));

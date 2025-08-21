@@ -8,11 +8,50 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:leak_tracker_flutter_testing/leak_tracker_flutter_testing.dart';
 
 import 'rendering_tester.dart';
 
 void main() {
   TestRenderingFlutterBinding.ensureInitialized();
+
+  test('PipelineOwner dispatches memory events', () async {
+    await expectLater(
+      await memoryEvents(() => PipelineOwner().dispose(), PipelineOwner),
+      areCreateAndDispose,
+    );
+  });
+
+  test('nodesNeedingLayout updated with layout changes', () {
+    final _TestPipelineOwner owner = _TestPipelineOwner();
+    final TestRenderObject renderObject = TestRenderObject()..isRepaintBoundary = true;
+    renderObject.attach(owner);
+    expect(owner.needLayout, isEmpty);
+
+    renderObject.layout(const BoxConstraints.tightForFinite());
+    renderObject.markNeedsLayout();
+    expect(owner.needLayout, contains(renderObject));
+
+    owner.flushLayout();
+    expect(owner.needLayout, isEmpty);
+  });
+
+  test('nodesNeedingPaint updated with paint changes', () {
+    final _TestPipelineOwner owner = _TestPipelineOwner();
+    final TestRenderObject renderObject = TestRenderObject(allowPaintBounds: true)
+      ..isRepaintBoundary = true;
+    final OffsetLayer layer = OffsetLayer();
+    layer.attach(owner);
+    renderObject.attach(owner);
+    expect(owner.needPaint, isEmpty);
+
+    renderObject.markNeedsPaint();
+    renderObject.scheduleInitialPaint(layer);
+    expect(owner.needPaint, contains(renderObject));
+
+    owner.flushPaint();
+    expect(owner.needPaint, isEmpty);
+  });
 
   test('ensure frame is scheduled for markNeedsSemanticsUpdate', () {
     // Initialize all bindings because owner.flushSemantics() requires a window
@@ -20,13 +59,15 @@ void main() {
     int onNeedVisualUpdateCallCount = 0;
     final PipelineOwner owner = PipelineOwner(
       onNeedVisualUpdate: () {
-        onNeedVisualUpdateCallCount +=1;
+        onNeedVisualUpdateCallCount += 1;
       },
-      onSemanticsUpdate: (ui.SemanticsUpdate update) {}
+      onSemanticsUpdate: (ui.SemanticsUpdate update) {},
     );
     owner.ensureSemantics();
-    renderObject.attach(owner);
-    renderObject.layout(const BoxConstraints.tightForFinite());  // semantics are only calculated if layout information is up to date.
+    owner.rootNode = renderObject;
+    renderObject.layout(
+      const BoxConstraints.tightForFinite(),
+    ); // semantics are only calculated if layout information is up to date.
     owner.flushSemantics();
 
     expect(onNeedVisualUpdateCallCount, 1);
@@ -46,7 +87,7 @@ void main() {
     expect(onSemanticsUpdateCallCount, 0);
 
     final TestRenderObject renderObject = TestRenderObject();
-    renderObject.attach(owner);
+    owner.rootNode = renderObject;
     renderObject.layout(const BoxConstraints.tightForFinite());
     owner.flushSemantics();
 
@@ -57,7 +98,6 @@ void main() {
     final PipelineOwner pipelineOwner = PipelineOwner();
     expect(() => pipelineOwner.ensureSemantics(), throwsAssertionError);
   });
-
 
   test('onSemanticsUpdate during sendSemanticsUpdate.', () {
     int onSemanticsUpdateCallCount = 0;
@@ -104,7 +144,7 @@ void main() {
     expect(errorDetails, isNotNull);
     expect(errorDetails.stack, isNotNull);
     // Check the ErrorDetails without the stack trace
-    final List<String> lines =  errorDetails.toString().split('\n');
+    final List<String> lines = errorDetails.toString().split('\n');
     // The lines in the middle of the error message contain the stack trace
     // which will change depending on where the test is run.
     expect(lines.length, greaterThan(8));
@@ -139,16 +179,14 @@ void main() {
       ..previousSibling = RenderOpacity();
     expect(() => data1.detach(), throwsAssertionError);
 
-    final TestParentData data2 = TestParentData()
-      ..previousSibling = RenderOpacity();
+    final TestParentData data2 = TestParentData()..previousSibling = RenderOpacity();
     expect(() => data2.detach(), throwsAssertionError);
 
-    final TestParentData data3 = TestParentData()
-      ..nextSibling = RenderOpacity();
+    final TestParentData data3 = TestParentData()..nextSibling = RenderOpacity();
     expect(() => data3.detach(), throwsAssertionError);
   });
 
-  test('RenderObject.getTransformTo asserts is argument is not descendant', () {
+  test('RenderObject.getTransformTo asserts if target not in the same render tree', () {
     final PipelineOwner owner = PipelineOwner();
     final TestRenderObject renderObject1 = TestRenderObject();
     renderObject1.attach(owner);
@@ -157,38 +195,183 @@ void main() {
     expect(() => renderObject1.getTransformTo(renderObject2), throwsAssertionError);
   });
 
+  test('RenderObject.getTransformTo works for siblings and descendants', () {
+    final PipelineOwner owner = PipelineOwner();
+    final TestRenderObject renderObject1 = TestRenderObject()..attach(owner);
+    final TestRenderObject renderObject11 = TestRenderObject();
+    final TestRenderObject renderObject12 = TestRenderObject();
+
+    renderObject1
+      ..add(renderObject11)
+      ..add(renderObject12);
+    expect(renderObject11.getTransformTo(renderObject12), equals(Matrix4.identity()));
+    expect(renderObject1.getTransformTo(renderObject11), equals(Matrix4.identity()));
+    expect(renderObject1.getTransformTo(renderObject12), equals(Matrix4.identity()));
+    expect(renderObject11.getTransformTo(renderObject1), equals(Matrix4.identity()));
+    expect(renderObject12.getTransformTo(renderObject1), equals(Matrix4.identity()));
+
+    expect(renderObject1.getTransformTo(renderObject1), equals(Matrix4.identity()));
+    expect(renderObject11.getTransformTo(renderObject11), equals(Matrix4.identity()));
+    expect(renderObject12.getTransformTo(renderObject12), equals(Matrix4.identity()));
+  });
+
+  test('RenderObject.getTransformTo gets the correct paint transform', () {
+    final PipelineOwner owner = PipelineOwner();
+    final TestRenderObject renderObject0 = TestRenderObject()..attach(owner);
+    final TestRenderObject renderObject1 = TestRenderObject();
+    final TestRenderObject renderObject2 = TestRenderObject();
+    renderObject0
+      ..add(renderObject1)
+      ..add(renderObject2)
+      ..paintTransform = Matrix4.diagonal3Values(9, 4, 1);
+
+    final TestRenderObject renderObject11 = TestRenderObject();
+    final TestRenderObject renderObject21 = TestRenderObject();
+    renderObject1
+      ..add(renderObject11)
+      ..paintTransform = Matrix4.translationValues(8, 16, 32);
+    renderObject2
+      ..add(renderObject21)
+      ..paintTransform = Matrix4.translationValues(32, 64, 128);
+
+    expect(
+      renderObject11.getTransformTo(renderObject21),
+      equals(Matrix4.translationValues((8 - 32) * 9, (16 - 64) * 4, 32 - 128)),
+    );
+    // Turn one of the paint transforms into a singular matrix and getTransformTo
+    // should return Matrix4.zero().
+    renderObject0.paintTransform = Matrix4(
+      1,
+      1,
+      1,
+      1,
+      2,
+      2,
+      2,
+      2,
+      3,
+      3,
+      3,
+      3,
+      4,
+      4,
+      4,
+      4,
+    ); // Not a full rank matrix, so it has to be singular.
+    expect(renderObject11.getTransformTo(renderObject21), equals(Matrix4.zero()));
+  });
+
   test('PaintingContext.pushClipRect reuses the layer', () {
-    _testPaintingContextLayerReuse<ClipRectLayer>((PaintingContextCallback painter, PaintingContext context, Offset offset, Layer? oldLayer) {
-      return context.pushClipRect(true, offset, Rect.zero, painter, oldLayer: oldLayer as ClipRectLayer?);
+    _testPaintingContextLayerReuse<ClipRectLayer>((
+      PaintingContextCallback painter,
+      PaintingContext context,
+      Offset offset,
+      Layer? oldLayer,
+    ) {
+      return context.pushClipRect(
+        true,
+        offset,
+        Rect.zero,
+        painter,
+        oldLayer: oldLayer as ClipRectLayer?,
+      );
     });
   });
 
   test('PaintingContext.pushClipRRect reuses the layer', () {
-    _testPaintingContextLayerReuse<ClipRRectLayer>((PaintingContextCallback painter, PaintingContext context, Offset offset, Layer? oldLayer) {
-      return context.pushClipRRect(true, offset, Rect.zero, RRect.fromRectAndRadius(Rect.zero, const Radius.circular(1.0)), painter, oldLayer: oldLayer as ClipRRectLayer?);
+    _testPaintingContextLayerReuse<ClipRRectLayer>((
+      PaintingContextCallback painter,
+      PaintingContext context,
+      Offset offset,
+      Layer? oldLayer,
+    ) {
+      return context.pushClipRRect(
+        true,
+        offset,
+        Rect.zero,
+        RRect.fromRectAndRadius(Rect.zero, const Radius.circular(1.0)),
+        painter,
+        oldLayer: oldLayer as ClipRRectLayer?,
+      );
+    });
+  });
+
+  test('PaintingContext.pushClipRSuperellipse reuses the layer', () {
+    _testPaintingContextLayerReuse<ClipRSuperellipseLayer>((
+      PaintingContextCallback painter,
+      PaintingContext context,
+      Offset offset,
+      Layer? oldLayer,
+    ) {
+      return context.pushClipRSuperellipse(
+        true,
+        offset,
+        Rect.zero,
+        RSuperellipse.fromRectAndRadius(Rect.zero, const Radius.circular(1.0)),
+        painter,
+        oldLayer: oldLayer as ClipRSuperellipseLayer?,
+      );
     });
   });
 
   test('PaintingContext.pushClipPath reuses the layer', () {
-    _testPaintingContextLayerReuse<ClipPathLayer>((PaintingContextCallback painter, PaintingContext context, Offset offset, Layer? oldLayer) {
-      return context.pushClipPath(true, offset, Rect.zero, Path(), painter, oldLayer: oldLayer as ClipPathLayer?);
+    _testPaintingContextLayerReuse<ClipPathLayer>((
+      PaintingContextCallback painter,
+      PaintingContext context,
+      Offset offset,
+      Layer? oldLayer,
+    ) {
+      return context.pushClipPath(
+        true,
+        offset,
+        Rect.zero,
+        Path(),
+        painter,
+        oldLayer: oldLayer as ClipPathLayer?,
+      );
     });
   });
 
   test('PaintingContext.pushColorFilter reuses the layer', () {
-    _testPaintingContextLayerReuse<ColorFilterLayer>((PaintingContextCallback painter, PaintingContext context, Offset offset, Layer? oldLayer) {
-      return context.pushColorFilter(offset, const ColorFilter.mode(Color.fromRGBO(0, 0, 0, 1.0), BlendMode.clear), painter, oldLayer: oldLayer as ColorFilterLayer?);
+    _testPaintingContextLayerReuse<ColorFilterLayer>((
+      PaintingContextCallback painter,
+      PaintingContext context,
+      Offset offset,
+      Layer? oldLayer,
+    ) {
+      return context.pushColorFilter(
+        offset,
+        const ColorFilter.mode(Color.fromRGBO(0, 0, 0, 1.0), BlendMode.clear),
+        painter,
+        oldLayer: oldLayer as ColorFilterLayer?,
+      );
     });
   });
 
   test('PaintingContext.pushTransform reuses the layer', () {
-    _testPaintingContextLayerReuse<TransformLayer>((PaintingContextCallback painter, PaintingContext context, Offset offset, Layer? oldLayer) {
-      return context.pushTransform(true, offset, Matrix4.identity(), painter, oldLayer: oldLayer as TransformLayer?);
+    _testPaintingContextLayerReuse<TransformLayer>((
+      PaintingContextCallback painter,
+      PaintingContext context,
+      Offset offset,
+      Layer? oldLayer,
+    ) {
+      return context.pushTransform(
+        true,
+        offset,
+        Matrix4.identity(),
+        painter,
+        oldLayer: oldLayer as TransformLayer?,
+      );
     });
   });
 
   test('PaintingContext.pushOpacity reuses the layer', () {
-    _testPaintingContextLayerReuse<OpacityLayer>((PaintingContextCallback painter, PaintingContext context, Offset offset, Layer? oldLayer) {
+    _testPaintingContextLayerReuse<OpacityLayer>((
+      PaintingContextCallback painter,
+      PaintingContext context,
+      Offset offset,
+      Layer? oldLayer,
+    ) {
       return context.pushOpacity(offset, 100, painter, oldLayer: oldLayer as OpacityLayer?);
     });
   });
@@ -311,8 +494,45 @@ void main() {
     root.buildScene(ui.SceneBuilder()).dispose();
     expect(calledBack, true);
   });
-}
 
+  test('Change isRepaintBoundary after both markNeedsCompositedLayerUpdate and markNeedsPaint', () {
+    List<FlutterErrorDetails?>? caughtErrors;
+    TestRenderingFlutterBinding.instance.onErrors = () {
+      caughtErrors = TestRenderingFlutterBinding.instance.takeAllFlutterErrorDetails().toList();
+    };
+    final TestRenderObject object = TestRenderObject(allowPaintBounds: true);
+    object.isRepaintBoundary = true;
+    object.attach(TestRenderingFlutterBinding.instance.pipelineOwner);
+    object.layout(const BoxConstraints.tightForFinite());
+    PaintingContext.repaintCompositedChild(object, debugAlsoPaintedParent: true);
+
+    object.markNeedsCompositedLayerUpdate();
+    object.markNeedsPaint();
+    object.isRepaintBoundary = false;
+    object.markNeedsCompositingBitsUpdate();
+    TestRenderingFlutterBinding.instance.pumpCompleteFrame();
+    expect(caughtErrors, isNull);
+  });
+
+  test('ContainerParentDataMixin asserts parentData type', () {
+    final TestRenderObject renderObject = TestRenderObjectWithoutSetupParentData();
+    final TestRenderObject child = TestRenderObject();
+    expect(
+      () => renderObject.add(child),
+      throwsA(
+        isA<AssertionError>().having(
+          (AssertionError error) => error.toString(),
+          'description',
+          contains(
+            'A child of TestRenderObjectWithoutSetupParentData has parentData of type ParentData, '
+            'which does not conform to TestRenderObjectParentData. Class using ContainerRenderObjectMixin '
+            'should override setupParentData() to set parentData to type TestRenderObjectParentData.',
+          ),
+        ),
+      ),
+    );
+  });
+}
 
 class TestObservingRenderObject extends RenderBox {
   TestObservingRenderObject(this.callback);
@@ -327,6 +547,7 @@ class TestObservingRenderObject extends RenderBox {
     context.addCompositionCallback(callback);
   }
 }
+
 // Tests the create-update cycle by pumping two frames. The first frame has no
 // prior layer and forces the painting context to create a new one. The second
 // frame reuses the layer painted on the first frame.
@@ -342,7 +563,13 @@ void _testPaintingContextLayerReuse<L extends Layer>(_LayerTestPaintCallback pai
   expect(box.paintedLayers[0], same(box.paintedLayers[1]));
 }
 
-typedef _LayerTestPaintCallback = Layer? Function(PaintingContextCallback painter, PaintingContext context, Offset offset, Layer? oldLayer);
+typedef _LayerTestPaintCallback =
+    Layer? Function(
+      PaintingContextCallback painter,
+      PaintingContext context,
+      Offset offset,
+      Layer? oldLayer,
+    );
 
 class _TestCustomLayerBox extends RenderBox {
   _TestCustomLayerBox(this.painter);
@@ -366,9 +593,13 @@ class _TestCustomLayerBox extends RenderBox {
   }
 }
 
-class TestParentData extends ParentData with ContainerParentDataMixin<RenderBox> { }
+class TestParentData extends ParentData with ContainerParentDataMixin<RenderBox> {}
 
-class TestRenderObject extends RenderObject {
+class TestRenderObjectParentData extends ParentData
+    with ContainerParentDataMixin<TestRenderObject> {}
+
+class TestRenderObject extends RenderObject
+    with ContainerRenderObjectMixin<TestRenderObject, TestRenderObjectParentData> {
   TestRenderObject({this.allowPaintBounds = false});
 
   final bool allowPaintBounds;
@@ -377,7 +608,7 @@ class TestRenderObject extends RenderObject {
   bool isRepaintBoundary = false;
 
   @override
-  void debugAssertDoesMeetConstraints() { }
+  void debugAssertDoesMeetConstraints() {}
 
   @override
   Rect get paintBounds {
@@ -385,11 +616,25 @@ class TestRenderObject extends RenderObject {
     return Rect.zero;
   }
 
+  Matrix4 paintTransform = Matrix4.identity();
   @override
-  void performLayout() { }
+  void applyPaintTransform(covariant RenderObject child, Matrix4 transform) {
+    super.applyPaintTransform(child, transform);
+    transform.multiply(paintTransform);
+  }
 
   @override
-  void performResize() { }
+  void setupParentData(RenderObject child) {
+    if (child.parentData is! TestRenderObjectParentData) {
+      child.parentData = TestRenderObjectParentData();
+    }
+  }
+
+  @override
+  void performLayout() {}
+
+  @override
+  void performResize() {}
 
   @override
   Rect get semanticBounds => const Rect.fromLTWH(0.0, 0.0, 10.0, 20.0);
@@ -404,6 +649,16 @@ class TestRenderObject extends RenderObject {
   }
 }
 
+class TestRenderObjectWithoutSetupParentData extends TestRenderObject {
+  @override
+  void setupParentData(RenderObject child) {
+    // Use a mismatched parent data type.
+    if (child.parentData is! ParentData) {
+      child.parentData = ParentData();
+    }
+  }
+}
+
 class LeaderLayerRenderObject extends RenderObject {
   LeaderLayerRenderObject();
 
@@ -413,7 +668,7 @@ class LeaderLayerRenderObject extends RenderObject {
   bool isRepaintBoundary = true;
 
   @override
-  void debugAssertDoesMeetConstraints() { }
+  void debugAssertDoesMeetConstraints() {}
 
   @override
   Rect get paintBounds {
@@ -428,10 +683,10 @@ class LeaderLayerRenderObject extends RenderObject {
   }
 
   @override
-  void performLayout() { }
+  void performLayout() {}
 
   @override
-  void performResize() { }
+  void performResize() {}
 
   @override
   Rect get semanticBounds => const Rect.fromLTWH(0.0, 0.0, 10.0, 20.0);
@@ -444,7 +699,7 @@ class TestThrowingRenderObject extends RenderObject {
   }
 
   @override
-  void debugAssertDoesMeetConstraints() { }
+  void debugAssertDoesMeetConstraints() {}
 
   @override
   Rect get paintBounds {
@@ -453,11 +708,18 @@ class TestThrowingRenderObject extends RenderObject {
   }
 
   @override
-  void performResize() { }
+  void performResize() {}
 
   @override
   Rect get semanticBounds {
     assert(false); // The test shouldn't call this.
     return Rect.zero;
   }
+}
+
+final class _TestPipelineOwner extends PipelineOwner {
+  // Make these protected fields visible for testing.
+  Iterable<RenderObject> get needLayout => super.nodesNeedingLayout;
+
+  Iterable<RenderObject> get needPaint => super.nodesNeedingPaint;
 }

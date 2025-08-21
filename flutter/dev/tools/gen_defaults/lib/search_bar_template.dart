@@ -5,13 +5,28 @@
 import 'template.dart';
 
 class SearchBarTemplate extends TokenTemplate {
-  const SearchBarTemplate(super.blockName, super.fileName, super.tokens, {
+  const SearchBarTemplate(
+    super.blockName,
+    super.fileName,
+    super.tokens, {
     super.colorSchemePrefix = '_colors.',
-    super.textThemePrefix = '_textTheme.'
+    super.textThemePrefix = '_textTheme.',
   });
 
+  String _surfaceTint() {
+    final String? color = colorOrTransparent(
+      'md.comp.search-bar.container.surface-tint-layer.color',
+    );
+    final String surfaceTintColor = 'MaterialStatePropertyAll<Color>($color);';
+    if (color == 'Colors.transparent') {
+      return 'const $surfaceTintColor';
+    }
+    return surfaceTintColor;
+  }
+
   @override
-  String generate() => '''
+  String generate() =>
+      '''
 class _SearchBarDefaultsM3 extends SearchBarThemeData {
   _SearchBarDefaultsM3(this.context);
 
@@ -33,7 +48,7 @@ class _SearchBarDefaultsM3 extends SearchBarThemeData {
 
   @override
   MaterialStateProperty<Color>? get surfaceTintColor =>
-    MaterialStatePropertyAll<Color>(${colorOrTransparent("md.comp.search-bar.container.surface-tint-layer.color")});
+    ${_surfaceTint()}
 
   @override
   MaterialStateProperty<Color?>? get overlayColor =>

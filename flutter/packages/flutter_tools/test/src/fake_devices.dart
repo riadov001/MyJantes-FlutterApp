@@ -8,10 +8,13 @@ import 'package:flutter_tools/src/application_package.dart';
 import 'package:flutter_tools/src/build_info.dart';
 import 'package:flutter_tools/src/device.dart';
 import 'package:flutter_tools/src/project.dart';
+import 'package:flutter_tools/src/vmservice.dart';
+
+import 'fakes.dart';
 
 /// A list of fake devices to test JSON serialization
 /// (`Device.toJson()` and `--machine` flag for `devices` command)
-List<FakeDeviceJsonData> fakeDevices = <FakeDeviceJsonData>[
+var fakeDevices = <FakeDeviceJsonData>[
   FakeDeviceJsonData(
     FakeDevice('ephemeral', 'ephemeral', type: PlatformType.android),
     <String, Object>{
@@ -30,13 +33,13 @@ List<FakeDeviceJsonData> fakeDevices = <FakeDeviceJsonData>[
         'hardwareRendering': true,
         'startPaused': true,
       },
-    }
+    },
   ),
   FakeDeviceJsonData(
     FakeDevice('webby', 'webby')
       ..targetPlatform = Future<TargetPlatform>.value(TargetPlatform.web_javascript)
       ..sdkNameAndVersion = Future<String>.value('Web SDK (1.2.4)'),
-    <String,Object>{
+    <String, Object>{
       'name': 'webby',
       'id': 'webby',
       'isSupported': true,
@@ -77,18 +80,18 @@ List<FakeDeviceJsonData> fakeDevices = <FakeDeviceJsonData>[
         'hardwareRendering': true,
         'startPaused': true,
       },
-    }
+    },
   ),
   FakeDeviceJsonData(
     FakeDevice(
-      'wireless ios',
-      'wireless-ios',
-      type:PlatformType.ios,
-      connectionInterface: DeviceConnectionInterface.wireless,
-    )
+        'wireless ios',
+        'wireless-ios',
+        type: PlatformType.ios,
+        connectionInterface: DeviceConnectionInterface.wireless,
+      )
       ..targetPlatform = Future<TargetPlatform>.value(TargetPlatform.ios)
       ..sdkNameAndVersion = Future<String>.value('iOS 16'),
-    <String,Object>{
+    <String, Object>{
       'name': 'wireless ios',
       'id': 'wireless-ios',
       'isSupported': true,
@@ -110,7 +113,9 @@ List<FakeDeviceJsonData> fakeDevices = <FakeDeviceJsonData>[
 
 /// Fake device to test `devices` command.
 class FakeDevice extends Device {
-  FakeDevice(this.name, String id, {
+  FakeDevice(
+    this.name,
+    String id, {
     bool ephemeral = true,
     bool isSupported = true,
     bool isSupportedForProject = true,
@@ -118,25 +123,35 @@ class FakeDevice extends Device {
     this.connectionInterface = DeviceConnectionInterface.attached,
     PlatformType type = PlatformType.web,
     LaunchResult? launchResult,
+    this.deviceLogReader,
+    bool supportsFlavors = false,
   }) : _isSupported = isSupported,
-      _isSupportedForProject = isSupportedForProject,
-      _launchResult = launchResult ?? LaunchResult.succeeded(),
-      super(
-        id,
-        platformType: type,
-        category: Category.mobile,
-        ephemeral: ephemeral,
-      );
+       _isSupportedForProject = isSupportedForProject,
+       _launchResult = launchResult ?? LaunchResult.succeeded(),
+       _supportsFlavors = supportsFlavors,
+       super(
+         id,
+         platformType: type,
+         category: Category.mobile,
+         ephemeral: ephemeral,
+         logger: FakeLogger(),
+       );
 
   final bool _isSupported;
   final bool _isSupportedForProject;
+  final bool _supportsFlavors;
   final LaunchResult _launchResult;
+  DeviceLogReader? deviceLogReader;
 
   @override
   final String name;
 
   @override
-  Future<LaunchResult> startApp(ApplicationPackage? package, {
+  String get displayName => name;
+
+  @override
+  Future<LaunchResult> startApp(
+    ApplicationPackage? package, {
     String? mainPath,
     String? route,
     DebuggingOptions? debuggingOptions,
@@ -147,21 +162,16 @@ class FakeDevice extends Device {
   }) async => _launchResult;
 
   @override
-  Future<bool> stopApp(ApplicationPackage? app, {
-    String? userIdentifier,
-  }) async => true;
+  Future<bool> stopApp(ApplicationPackage? app, {String? userIdentifier}) async => true;
 
   @override
-  Future<bool> uninstallApp(
-    ApplicationPackage app, {
-    String? userIdentifier,
-  }) async => true;
+  Future<bool> uninstallApp(ApplicationPackage app, {String? userIdentifier}) async => true;
 
   @override
   Future<void> dispose() async {}
 
   @override
-  Future<TargetPlatform> targetPlatform = Future<TargetPlatform>.value(TargetPlatform.android_arm);
+  var targetPlatform = Future<TargetPlatform>.value(TargetPlatform.android_arm);
 
   @override
   void noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
@@ -170,7 +180,10 @@ class FakeDevice extends Device {
   bool isSupportedForProject(FlutterProject flutterProject) => _isSupportedForProject;
 
   @override
-  bool isSupported() => _isSupported;
+  Future<bool> isSupported() async => _isSupported;
+
+  @override
+  bool get supportsFlavors => _supportsFlavors;
 
   @override
   bool isConnected;
@@ -179,10 +192,14 @@ class FakeDevice extends Device {
   DeviceConnectionInterface connectionInterface;
 
   @override
-  Future<bool> isLocalEmulator = Future<bool>.value(true);
+  var isLocalEmulator = Future<bool>.value(true);
 
   @override
-  Future<String> sdkNameAndVersion = Future<String>.value('Test SDK (1.2.3)');
+  var sdkNameAndVersion = Future<String>.value('Test SDK (1.2.3)');
+
+  @override
+  FutureOr<DeviceLogReader> getLogReader({ApplicationPackage? app, bool includePastLogs = false}) =>
+      deviceLogReader ?? FakeDeviceLogReader();
 }
 
 /// Combines fake device with its canonical JSON representation.
@@ -194,16 +211,15 @@ class FakeDeviceJsonData {
 }
 
 class FakePollingDeviceDiscovery extends PollingDeviceDiscovery {
-  FakePollingDeviceDiscovery({
-    this.requiresExtendedWirelessDeviceDiscovery = false,
-  })  : super('mock');
+  FakePollingDeviceDiscovery({this.requiresExtendedWirelessDeviceDiscovery = false})
+    : super('mock');
 
-  final List<Device> _devices = <Device>[];
-  final StreamController<Device> _onAddedController = StreamController<Device>.broadcast();
-  final StreamController<Device> _onRemovedController = StreamController<Device>.broadcast();
+  final _devices = <Device>[];
+  final _onAddedController = StreamController<Device>.broadcast();
+  final _onRemovedController = StreamController<Device>.broadcast();
 
   @override
-  Future<List<Device>> pollingGetDevices({ Duration? timeout }) async {
+  Future<List<Device>> pollingGetDevices({Duration? timeout}) async {
     lastPollingTimeout = timeout;
     return _devices;
   }
@@ -236,13 +252,10 @@ class FakePollingDeviceDiscovery extends PollingDeviceDiscovery {
     devices.forEach(addDevice);
   }
 
-  bool discoverDevicesCalled = false;
+  var discoverDevicesCalled = false;
 
   @override
-  Future<List<Device>> discoverDevices({
-    Duration? timeout,
-    DeviceDiscoveryFilter? filter,
-  }) {
+  Future<List<Device>> discoverDevices({Duration? timeout, DeviceDiscoveryFilter? filter}) {
     discoverDevicesCalled = true;
     return super.discoverDevices(timeout: timeout);
   }
@@ -254,7 +267,12 @@ class FakePollingDeviceDiscovery extends PollingDeviceDiscovery {
   Stream<Device> get onRemoved => _onRemovedController.stream;
 
   @override
-  List<String> wellKnownIds = <String>[];
+  var wellKnownIds = <String>[];
+
+  var diagnostics = <String>[];
+
+  @override
+  Future<List<String>> getDiagnostics() => Future<List<String>>.value(diagnostics);
 }
 
 /// A fake implementation of the [DeviceLogReader].
@@ -262,18 +280,18 @@ class FakeDeviceLogReader extends DeviceLogReader {
   @override
   String get name => 'FakeLogReader';
 
-  bool disposed = false;
+  var disposed = false;
 
-  final List<String> _lineQueue = <String>[];
-  late final StreamController<String> _linesController =
-    StreamController<String>
-        .broadcast(onListen: () {
-      _lineQueue.forEach(_linesController.add);
-      _lineQueue.clear();
-    });
+  final _lineQueue = <String>[];
+  late final _linesController = StreamController<String>.broadcast(onListen: _onListen);
 
   @override
   Stream<String> get logLines => _linesController.stream;
+
+  void _onListen() {
+    _lineQueue.forEach(_linesController.add);
+    _lineQueue.clear();
+  }
 
   void addLine(String line) {
     if (_linesController.hasListener) {
@@ -289,4 +307,7 @@ class FakeDeviceLogReader extends DeviceLogReader {
     await _linesController.close();
     disposed = true;
   }
+
+  @override
+  Future<void> provideVmService(FlutterVmService? connectedVmService) async {}
 }

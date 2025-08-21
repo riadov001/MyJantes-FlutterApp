@@ -3,7 +3,6 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
-
 # ---------------------------------- NOTE ---------------------------------- #
 #
 # Please keep the logic in this file consistent with the logic in the
@@ -21,7 +20,7 @@ function pub_upgrade_with_retry {
   local total_tries="10"
   local remaining_tries=$((total_tries - 1))
   while [[ "$remaining_tries" -gt 0 ]]; do
-    (cd "$FLUTTER_TOOLS_DIR" && "$DART" pub upgrade --suppress-analytics) && break
+    (cd "$FLUTTER_TOOLS_DIR" && "$DART" pub upgrade --suppress-analytics >&2) && break
     >&2 echo "Error: Unable to 'pub upgrade' flutter tool. Retrying in five seconds... ($remaining_tries tries left)"
     remaining_tries=$((remaining_tries - 1))
     sleep 5
@@ -31,6 +30,11 @@ function pub_upgrade_with_retry {
     >&2 echo "Command 'pub upgrade' still failed after $total_tries tries, giving up."
     return 1
   fi
+
+  # Touch the pubspec.lock to ensure, even if this was a NOP, it is newer than pubspec.yaml.
+  # See https://github.com/flutter/flutter/issues/171024.
+  touch "$FLUTTER_TOOLS_DIR/pubspec.lock" >&2
+
   return 0
 }
 
@@ -114,6 +118,9 @@ function _wait_for_lock () {
 function upgrade_flutter () (
   mkdir -p "$FLUTTER_ROOT/bin/cache"
 
+  # Ensure the engine.version is populated
+  "$FLUTTER_ROOT/bin/internal/update_engine_version.sh"
+
   local revision="$(cd "$FLUTTER_ROOT"; git rev-parse HEAD)"
   local compilekey="$revision:$FLUTTER_TOOL_ARGS"
 
@@ -144,6 +151,11 @@ function upgrade_flutter () (
     touch "$FLUTTER_ROOT/bin/cache/.dartignore"
     "$FLUTTER_ROOT/bin/internal/update_dart_sdk.sh"
 
+    if [[ "$BIN_NAME" == 'dart' || "$BIN_NAME" == 'flutter-dev' ]]; then
+      # Don't try to build tool
+      return
+    fi
+
     >&2 echo Building flutter tool...
 
     # Prepare packages...
@@ -164,7 +176,7 @@ function upgrade_flutter () (
     fi
 
     # Compile...
-    "$DART" --verbosity=error --disable-dart-dev $FLUTTER_TOOL_ARGS --snapshot="$SNAPSHOT_PATH" --snapshot-kind="app-jit" --packages="$FLUTTER_TOOLS_DIR/.dart_tool/package_config.json" --no-enable-mirrors "$SCRIPT_PATH" > /dev/null
+    "$DART" --verbosity=error $FLUTTER_TOOL_ARGS --snapshot="$SNAPSHOT_PATH" --snapshot-kind="app-jit" --packages="$FLUTTER_TOOLS_DIR/.dart_tool/package_config.json" --no-enable-mirrors "$SCRIPT_PATH" > /dev/null
     echo "$compilekey" > "$STAMP_PATH"
 
     # Delete any temporary snapshot path.
@@ -229,6 +241,8 @@ function shared::execute() {
     exit 1
   fi
 
+  BIN_NAME="$(basename "$PROG_NAME")"
+
   # File descriptor 7 is prepared here so that we can use it with
   # flock(1) in _lock() (see above).
   #
@@ -247,12 +261,16 @@ function shared::execute() {
   # SHARED_NAME itself is prepared by the caller script.
   upgrade_flutter 7< "$SHARED_NAME"
 
-  BIN_NAME="$(basename "$PROG_NAME")"
   case "$BIN_NAME" in
+    flutter-dev)
+      # FLUTTER_TOOL_ARGS aren't quoted below, because it is meant to be
+      # considered as separate space-separated args.
+      exec "$DART" run --resident --packages="$FLUTTER_TOOLS_DIR/.dart_tool/package_config.json" $FLUTTER_TOOL_ARGS "$SCRIPT_PATH" "$@"
+      ;;
     flutter*)
       # FLUTTER_TOOL_ARGS aren't quoted below, because it is meant to be
       # considered as separate space-separated args.
-      exec "$DART" --disable-dart-dev --packages="$FLUTTER_TOOLS_DIR/.dart_tool/package_config.json" $FLUTTER_TOOL_ARGS "$SNAPSHOT_PATH" "$@"
+      exec "$DART" --packages="$FLUTTER_TOOLS_DIR/.dart_tool/package_config.json" $FLUTTER_TOOL_ARGS "$SNAPSHOT_PATH" "$@"
       ;;
     dart*)
       exec "$DART" "$@"

@@ -12,8 +12,9 @@ import '../globals.dart' as globals;
 import '../runner/flutter_command.dart';
 
 class LogsCommand extends FlutterCommand {
-  LogsCommand() {
-    argParser.addFlag('clear',
+  LogsCommand({required this.sigint, required this.sigterm}) {
+    argParser.addFlag(
+      'clear',
       negatable: false,
       abbr: 'c',
       help: 'Clear log history before reading from logs.',
@@ -23,10 +24,10 @@ class LogsCommand extends FlutterCommand {
   }
 
   @override
-  final String name = 'logs';
+  final name = 'logs';
 
   @override
-  final String description = 'Show log output for running Flutter apps.';
+  final description = 'Show log output for running Flutter apps.';
 
   @override
   final String category = FlutterCommandCategory.tools;
@@ -38,6 +39,8 @@ class LogsCommand extends FlutterCommand {
   Future<Set<DevelopmentArtifact>> get requiredArtifacts async => const <DevelopmentArtifact>{};
 
   Device? device;
+  final ProcessSignal sigint;
+  final ProcessSignal sigterm;
 
   @override
   Future<FlutterCommandResult> verifyThenRunCommand(String? commandPath) async {
@@ -63,28 +66,33 @@ class LogsCommand extends FlutterCommand {
 
     globals.printStatus('Showing $logReader logs:');
 
-    final Completer<int> exitCompleter = Completer<int>();
+    final exitCompleter = Completer<int>();
+
+    // First check if we already completed by another branch before completing
+    // with [exitCode].
+    void maybeComplete([int exitCode = 0]) {
+      if (exitCompleter.isCompleted) {
+        return;
+      }
+      exitCompleter.complete(exitCode);
+    }
 
     // Start reading.
     final StreamSubscription<String> subscription = logReader.logLines.listen(
       (String message) => globals.printStatus(message, wrap: false),
-      onDone: () {
-        exitCompleter.complete(0);
-      },
-      onError: (dynamic error) {
-        exitCompleter.complete(error is int ? error : 1);
-      },
+      onDone: () => maybeComplete(),
+      onError: (dynamic error) => maybeComplete(error is int ? error : 1),
     );
 
     // When terminating, close down the log reader.
-    ProcessSignal.sigint.watch().listen((ProcessSignal signal) {
+    sigint.watch().listen((ProcessSignal signal) {
       subscription.cancel();
+      maybeComplete();
       globals.printStatus('');
-      exitCompleter.complete(0);
     });
-    ProcessSignal.sigterm.watch().listen((ProcessSignal signal) {
+    sigterm.watch().listen((ProcessSignal signal) {
       subscription.cancel();
-      exitCompleter.complete(0);
+      maybeComplete();
     });
 
     // Wait for the log reader to be finished.

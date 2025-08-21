@@ -11,10 +11,9 @@ import 'package:flutter_test/flutter_test.dart';
 void main() {
   testWidgets('Can open menu', (WidgetTester tester) async {
     Finder findMenu() {
-      return find.ancestor(
-        of: find.text(example.MenuEntry.about.label),
-        matching: find.byType(FocusScope),
-      ).first;
+      return find
+          .ancestor(of: find.text(example.MenuEntry.about.label), matching: find.byType(FocusScope))
+          .first;
     }
 
     await tester.pumpWidget(const example.ContextMenuApp());
@@ -51,7 +50,18 @@ void main() {
 
     expect(find.text('Background Color'), findsOneWidget);
 
+    // Focusing the background color item with the keyboard caused the submenu
+    // to open. Tapping it should cause it to close.
     await tester.tap(find.text('Background Color'));
+    await tester.pump();
+    await tester.pumpAndSettle();
+
+    expect(find.text(example.MenuEntry.colorRed.label), findsNothing);
+    expect(find.text(example.MenuEntry.colorGreen.label), findsNothing);
+    expect(find.text(example.MenuEntry.colorBlue.label), findsNothing);
+
+    await tester.tap(find.text('Background Color'));
+    await tester.pump();
     await tester.pumpAndSettle();
 
     expect(find.text(example.MenuEntry.colorRed.label), findsOneWidget);
@@ -67,9 +77,7 @@ void main() {
   });
 
   testWidgets('Shortcuts work', (WidgetTester tester) async {
-    await tester.pumpWidget(
-      const example.ContextMenuApp(),
-    );
+    await tester.pumpWidget(const example.ContextMenuApp());
 
     // Open the menu so we can look for state changes reflected in the menu.
     await tester.tapAt(const Offset(100, 200), buttons: kSecondaryButton);

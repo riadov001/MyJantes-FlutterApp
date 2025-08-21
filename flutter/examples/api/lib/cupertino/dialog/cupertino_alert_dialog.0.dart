@@ -23,9 +23,8 @@ class AlertDialogApp extends StatelessWidget {
 class AlertDialogExample extends StatelessWidget {
   const AlertDialogExample({super.key});
 
-  // This shows a CupertinoModalPopup which hosts a CupertinoAlertDialog.
   void _showAlertDialog(BuildContext context) {
-    showCupertinoModalPopup<void>(
+    showCupertinoDialog<void>(
       context: context,
       builder: (BuildContext context) => CupertinoAlertDialog(
         title: const Text('Alert'),
@@ -58,9 +57,7 @@ class AlertDialogExample extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return CupertinoPageScaffold(
-      navigationBar: const CupertinoNavigationBar(
-        middle: Text('CupertinoAlertDialog Sample'),
-      ),
+      navigationBar: const CupertinoNavigationBar(middle: Text('CupertinoAlertDialog Sample')),
       child: Center(
         child: CupertinoButton(
           onPressed: () => _showAlertDialog(context),

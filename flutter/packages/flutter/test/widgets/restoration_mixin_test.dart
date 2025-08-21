@@ -4,25 +4,23 @@
 
 import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:leak_tracker_flutter_testing/leak_tracker_flutter_testing.dart';
 
 import 'restoration.dart';
 
 void main() {
-  testWidgetsWithLeakTracking('claims bucket', (WidgetTester tester) async {
+  testWidgets('claims bucket', (WidgetTester tester) async {
     const String id = 'hello world 1234';
     final MockRestorationManager manager = MockRestorationManager();
     addTearDown(manager.dispose);
     final Map<String, dynamic> rawData = <String, dynamic>{};
     final RestorationBucket root = RestorationBucket.root(manager: manager, rawData: rawData);
+    addTearDown(root.dispose);
     expect(rawData, isEmpty);
 
     await tester.pumpWidget(
       UnmanagedRestorationScope(
         bucket: root,
-        child: const _TestRestorableWidget(
-          restorationId: id,
-        ),
+        child: const _TestRestorableWidget(restorationId: id),
       ),
     );
     manager.doSerialization();
@@ -31,23 +29,30 @@ void main() {
     expect(state.bucket?.restorationId, id);
     expect((rawData[childrenMapKey] as Map<Object?, Object?>).containsKey(id), isTrue);
     expect(state.property.value, 10);
-    expect((((rawData[childrenMapKey] as Map<Object?, Object?>)[id]! as Map<String, dynamic>)[valuesMapKey] as Map<Object?, Object?>)['foo'], 10);
+    expect(
+      (((rawData[childrenMapKey] as Map<Object?, Object?>)[id]!
+              as Map<String, dynamic>)[valuesMapKey]
+          as Map<Object?, Object?>)['foo'],
+      10,
+    );
     expect(state.property.log, <String>['createDefaultValue', 'initWithValue', 'toPrimitives']);
     expect(state.toggleBucketLog, isEmpty);
     expect(state.restoreStateLog.single, isNull);
   });
 
-  testWidgetsWithLeakTracking('claimed bucket with data', (WidgetTester tester) async {
+  testWidgets('claimed bucket with data', (WidgetTester tester) async {
     final MockRestorationManager manager = MockRestorationManager();
     addTearDown(manager.dispose);
-    final RestorationBucket root = RestorationBucket.root(manager: manager, rawData: _createRawDataSet());
+    final RestorationBucket root = RestorationBucket.root(
+      manager: manager,
+      rawData: _createRawDataSet(),
+    );
+    addTearDown(root.dispose);
 
     await tester.pumpWidget(
       UnmanagedRestorationScope(
         bucket: root,
-        child: const _TestRestorableWidget(
-          restorationId: 'child1',
-        ),
+        child: const _TestRestorableWidget(restorationId: 'child1'),
       ),
     );
     manager.doSerialization();
@@ -60,17 +65,21 @@ void main() {
     expect(state.restoreStateLog.single, isNull);
   });
 
-  testWidgetsWithLeakTracking('renames existing bucket when new ID is provided via widget', (WidgetTester tester) async {
+  testWidgets('renames existing bucket when new ID is provided via widget', (
+    WidgetTester tester,
+  ) async {
     final MockRestorationManager manager = MockRestorationManager();
     addTearDown(manager.dispose);
-    final RestorationBucket root = RestorationBucket.root(manager: manager, rawData: _createRawDataSet());
+    final RestorationBucket root = RestorationBucket.root(
+      manager: manager,
+      rawData: _createRawDataSet(),
+    );
+    addTearDown(root.dispose);
 
     await tester.pumpWidget(
       UnmanagedRestorationScope(
         bucket: root,
-        child: const _TestRestorableWidget(
-          restorationId: 'child1',
-        ),
+        child: const _TestRestorableWidget(restorationId: 'child1'),
       ),
     );
     manager.doSerialization();
@@ -88,9 +97,7 @@ void main() {
     await tester.pumpWidget(
       UnmanagedRestorationScope(
         bucket: root,
-        child: const _TestRestorableWidget(
-          restorationId: 'something else',
-        ),
+        child: const _TestRestorableWidget(restorationId: 'something else'),
       ),
     );
     manager.doSerialization();
@@ -103,17 +110,21 @@ void main() {
     expect(state.toggleBucketLog, isEmpty);
   });
 
-  testWidgetsWithLeakTracking('renames existing bucket when didUpdateRestorationId is called', (WidgetTester tester) async {
+  testWidgets('renames existing bucket when didUpdateRestorationId is called', (
+    WidgetTester tester,
+  ) async {
     final MockRestorationManager manager = MockRestorationManager();
     addTearDown(manager.dispose);
-    final RestorationBucket root = RestorationBucket.root(manager: manager, rawData: _createRawDataSet());
+    final RestorationBucket root = RestorationBucket.root(
+      manager: manager,
+      rawData: _createRawDataSet(),
+    );
+    addTearDown(root.dispose);
 
     await tester.pumpWidget(
       UnmanagedRestorationScope(
         bucket: root,
-        child: const _TestRestorableWidget(
-          restorationId: 'child1',
-        ),
+        child: const _TestRestorableWidget(restorationId: 'child1'),
       ),
     );
     manager.doSerialization();
@@ -139,51 +150,48 @@ void main() {
     expect(state.toggleBucketLog, isEmpty);
   });
 
-  testWidgetsWithLeakTracking('Disposing widget removes its data', (WidgetTester tester) async {
+  testWidgets('Disposing widget removes its data', (WidgetTester tester) async {
     final MockRestorationManager manager = MockRestorationManager();
     addTearDown(manager.dispose);
     final Map<String, dynamic> rawData = _createRawDataSet();
     final RestorationBucket root = RestorationBucket.root(manager: manager, rawData: rawData);
+    addTearDown(root.dispose);
 
     expect((rawData[childrenMapKey] as Map<String, dynamic>).containsKey('child1'), isTrue);
     await tester.pumpWidget(
       UnmanagedRestorationScope(
         bucket: root,
-        child: const _TestRestorableWidget(
-          restorationId: 'child1',
-        ),
+        child: const _TestRestorableWidget(restorationId: 'child1'),
       ),
     );
     manager.doSerialization();
     expect((rawData[childrenMapKey] as Map<String, dynamic>).containsKey('child1'), isTrue);
 
-    await tester.pumpWidget(
-      UnmanagedRestorationScope(
-        bucket: root,
-        child: Container(),
-      ),
-    );
+    await tester.pumpWidget(UnmanagedRestorationScope(bucket: root, child: Container()));
     manager.doSerialization();
 
     expect((rawData[childrenMapKey] as Map<String, dynamic>).containsKey('child1'), isFalse);
   });
 
-  testWidgetsWithLeakTracking('toggling id between null and non-null', (WidgetTester tester) async {
+  testWidgets('toggling id between null and non-null', (WidgetTester tester) async {
     final MockRestorationManager manager = MockRestorationManager();
     addTearDown(manager.dispose);
     final Map<String, dynamic> rawData = _createRawDataSet();
     final RestorationBucket root = RestorationBucket.root(manager: manager, rawData: rawData);
+    addTearDown(root.dispose);
 
     await tester.pumpWidget(
-      UnmanagedRestorationScope(
-        bucket: root,
-        child: const _TestRestorableWidget(),
-      ),
+      UnmanagedRestorationScope(bucket: root, child: const _TestRestorableWidget()),
     );
     final _TestRestorableWidgetState state = tester.state(find.byType(_TestRestorableWidget));
     expect(state.bucket, isNull);
     expect(state.property.value, 10); // Initialized to default.
-    expect((((rawData[childrenMapKey] as Map<String, dynamic>)['child1'] as Map<String, dynamic>)[valuesMapKey] as Map<String, dynamic>)['foo'], 22);
+    expect(
+      (((rawData[childrenMapKey] as Map<String, dynamic>)['child1']
+              as Map<String, dynamic>)[valuesMapKey]
+          as Map<String, dynamic>)['foo'],
+      22,
+    );
     expect(state.property.log, <String>['createDefaultValue', 'initWithValue']);
     state.property.log.clear();
     expect(state.restoreStateLog.single, isNull);
@@ -195,16 +203,19 @@ void main() {
     await tester.pumpWidget(
       UnmanagedRestorationScope(
         bucket: root,
-        child: const _TestRestorableWidget(
-          restorationId: 'child1',
-        ),
+        child: const _TestRestorableWidget(restorationId: 'child1'),
       ),
     );
     manager.doSerialization();
     expect(state.bucket, isNotNull);
     expect(state.bucket!.restorationId, 'child1');
     expect(state.property.value, 10);
-    expect((((rawData[childrenMapKey] as Map<String, dynamic>)['child1'] as Map<String, dynamic>)[valuesMapKey] as Map<String, dynamic>)['foo'], 10);
+    expect(
+      (((rawData[childrenMapKey] as Map<String, dynamic>)['child1']
+              as Map<String, dynamic>)[valuesMapKey]
+          as Map<String, dynamic>)['foo'],
+      10,
+    );
     expect(state.property.log, <String>['toPrimitives']);
     state.property.log.clear();
     expect(state.restoreStateLog, isEmpty);
@@ -216,10 +227,7 @@ void main() {
 
     // Change id back to null.
     await tester.pumpWidget(
-      UnmanagedRestorationScope(
-        bucket: root,
-        child: const _TestRestorableWidget(),
-      ),
+      UnmanagedRestorationScope(bucket: root, child: const _TestRestorableWidget()),
     );
     manager.doSerialization();
     expect(state.bucket, isNull);
@@ -229,23 +237,24 @@ void main() {
     expect(state.toggleBucketLog.single, same(bucket));
   });
 
-  testWidgetsWithLeakTracking('move in and out of scope', (WidgetTester tester) async {
+  testWidgets('move in and out of scope', (WidgetTester tester) async {
     final Key key = GlobalKey();
     final MockRestorationManager manager = MockRestorationManager();
     addTearDown(manager.dispose);
     final Map<String, dynamic> rawData = _createRawDataSet();
     final RestorationBucket root = RestorationBucket.root(manager: manager, rawData: rawData);
+    addTearDown(root.dispose);
 
-    await tester.pumpWidget(
-      _TestRestorableWidget(
-        key: key,
-        restorationId: 'child1',
-      ),
-    );
+    await tester.pumpWidget(_TestRestorableWidget(key: key, restorationId: 'child1'));
     final _TestRestorableWidgetState state = tester.state(find.byType(_TestRestorableWidget));
     expect(state.bucket, isNull);
     expect(state.property.value, 10); // Initialized to default.
-    expect((((rawData[childrenMapKey] as Map<String, dynamic>)['child1'] as Map<String, dynamic>)[valuesMapKey] as Map<String, dynamic>)['foo'], 22);
+    expect(
+      (((rawData[childrenMapKey] as Map<String, dynamic>)['child1']
+              as Map<String, dynamic>)[valuesMapKey]
+          as Map<String, dynamic>)['foo'],
+      22,
+    );
     expect(state.property.log, <String>['createDefaultValue', 'initWithValue']);
     state.property.log.clear();
     expect(state.restoreStateLog.single, isNull);
@@ -257,17 +266,19 @@ void main() {
     await tester.pumpWidget(
       UnmanagedRestorationScope(
         bucket: root,
-        child: _TestRestorableWidget(
-          key: key,
-          restorationId: 'child1',
-        ),
+        child: _TestRestorableWidget(key: key, restorationId: 'child1'),
       ),
     );
     manager.doSerialization();
     expect(state.bucket, isNotNull);
     expect(state.bucket!.restorationId, 'child1');
     expect(state.property.value, 10);
-    expect((((rawData[childrenMapKey] as Map<String, dynamic>)['child1'] as Map<String, dynamic>)[valuesMapKey] as Map<String, dynamic>)['foo'], 10);
+    expect(
+      (((rawData[childrenMapKey] as Map<String, dynamic>)['child1']
+              as Map<String, dynamic>)[valuesMapKey]
+          as Map<String, dynamic>)['foo'],
+      10,
+    );
     expect(state.property.log, <String>['toPrimitives']);
     state.property.log.clear();
     expect(state.restoreStateLog, isEmpty);
@@ -278,12 +289,7 @@ void main() {
     final RestorationBucket bucket = state.bucket!;
 
     // Move out of scope again.
-    await tester.pumpWidget(
-      _TestRestorableWidget(
-        key: key,
-        restorationId: 'child1',
-      ),
-    );
+    await tester.pumpWidget(_TestRestorableWidget(key: key, restorationId: 'child1'));
     manager.doSerialization();
     expect(state.bucket, isNull);
     expect((rawData[childrenMapKey] as Map<String, dynamic>).containsKey('child1'), isFalse);
@@ -292,11 +298,12 @@ void main() {
     expect(state.toggleBucketLog.single, same(bucket));
   });
 
-  testWidgetsWithLeakTracking('moving scope moves its data', (WidgetTester tester) async {
+  testWidgets('moving scope moves its data', (WidgetTester tester) async {
     final MockRestorationManager manager = MockRestorationManager();
     addTearDown(manager.dispose);
     final Map<String, dynamic> rawData = <String, dynamic>{};
     final RestorationBucket root = RestorationBucket.root(manager: manager, rawData: rawData);
+    addTearDown(root.dispose);
     final Key key = GlobalKey();
 
     await tester.pumpWidget(
@@ -307,10 +314,7 @@ void main() {
           children: <Widget>[
             RestorationScope(
               restorationId: 'fixed',
-              child: _TestRestorableWidget(
-                key: key,
-                restorationId: 'moving-child',
-              ),
+              child: _TestRestorableWidget(key: key, restorationId: 'moving-child'),
             ),
           ],
         ),
@@ -319,7 +323,13 @@ void main() {
     manager.doSerialization();
     final _TestRestorableWidgetState state = tester.state(find.byType(_TestRestorableWidget));
     expect(state.bucket!.restorationId, 'moving-child');
-    expect((((rawData[childrenMapKey] as Map<Object?, Object?>)['fixed']! as Map<String, dynamic>)[childrenMapKey] as Map<Object?, Object?>).containsKey('moving-child'), isTrue);
+    expect(
+      (((rawData[childrenMapKey] as Map<Object?, Object?>)['fixed']!
+                  as Map<String, dynamic>)[childrenMapKey]
+              as Map<Object?, Object?>)
+          .containsKey('moving-child'),
+      isTrue,
+    );
     final RestorationBucket bucket = state.bucket!;
     state.property.log.clear();
     state.restoreStateLog.clear();
@@ -334,14 +344,8 @@ void main() {
         child: Row(
           textDirection: TextDirection.ltr,
           children: <Widget>[
-            RestorationScope(
-              restorationId: 'fixed',
-              child: Container(),
-            ),
-            _TestRestorableWidget(
-              key: key,
-              restorationId: 'moving-child',
-            ),
+            RestorationScope(restorationId: 'fixed', child: Container()),
+            _TestRestorableWidget(key: key, restorationId: 'moving-child'),
           ],
         ),
       ),
@@ -358,13 +362,11 @@ void main() {
     expect((rawData[childrenMapKey] as Map<Object?, Object?>).containsKey('moving-child'), isTrue);
   });
 
-  testWidgetsWithLeakTracking('restartAndRestore', (WidgetTester tester) async {
+  testWidgets('restartAndRestore', (WidgetTester tester) async {
     await tester.pumpWidget(
       const RootRestorationScope(
         restorationId: 'root-child',
-        child: _TestRestorableWidget(
-          restorationId: 'widget',
-        ),
+        child: _TestRestorableWidget(restorationId: 'widget'),
       ),
     );
 
@@ -397,13 +399,11 @@ void main() {
     expect(state.toggleBucketLog, isEmpty);
   });
 
-  testWidgetsWithLeakTracking('restore while running', (WidgetTester tester) async {
+  testWidgets('restore while running', (WidgetTester tester) async {
     await tester.pumpWidget(
       const RootRestorationScope(
         restorationId: 'root-child',
-        child: _TestRestorableWidget(
-          restorationId: 'widget',
-        ),
+        child: _TestRestorableWidget(restorationId: 'widget'),
       ),
     );
 
@@ -436,20 +436,24 @@ void main() {
     expect(state.toggleBucketLog, isEmpty);
   });
 
-  testWidgetsWithLeakTracking('can register additional property outside of restoreState', (WidgetTester tester) async {
+  testWidgets('can register additional property outside of restoreState', (
+    WidgetTester tester,
+  ) async {
     await tester.pumpWidget(
       const RootRestorationScope(
         restorationId: 'root-child',
-        child: _TestRestorableWidget(
-          restorationId: 'widget',
-        ),
+        child: _TestRestorableWidget(restorationId: 'widget'),
       ),
     );
 
     final _TestRestorableWidgetState state = tester.state(find.byType(_TestRestorableWidget));
     state.registerAdditionalProperty();
     expect(state.additionalProperty!.value, 11);
-    expect(state.additionalProperty!.log, <String>['createDefaultValue', 'initWithValue', 'toPrimitives']);
+    expect(state.additionalProperty!.log, <String>[
+      'createDefaultValue',
+      'initWithValue',
+      'toPrimitives',
+    ]);
 
     state.setProperties(() {
       state.additionalProperty!.value = 33;
@@ -473,13 +477,11 @@ void main() {
     expect(state.property.log, <String>['fromPrimitives', 'initWithValue']);
   });
 
-  testWidgetsWithLeakTracking('cannot register same property twice', (WidgetTester tester) async {
+  testWidgets('cannot register same property twice', (WidgetTester tester) async {
     await tester.pumpWidget(
       const RootRestorationScope(
         restorationId: 'root-child',
-        child: _TestRestorableWidget(
-          restorationId: 'widget',
-        ),
+        child: _TestRestorableWidget(restorationId: 'widget'),
       ),
     );
 
@@ -493,9 +495,7 @@ void main() {
     await tester.pumpWidget(
       const RootRestorationScope(
         restorationId: 'root-child',
-        child: _TestRestorableWidget(
-          restorationId: 'widget',
-        ),
+        child: _TestRestorableWidget(restorationId: 'widget'),
       ),
     );
 
@@ -503,13 +503,11 @@ void main() {
     expect(() => state.registerPropertyUnderSameId(), throwsAssertionError);
   });
 
-  testWidgetsWithLeakTracking('data of disabled property is not stored', (WidgetTester tester) async {
+  testWidgets('data of disabled property is not stored', (WidgetTester tester) async {
     await tester.pumpWidget(
       const RootRestorationScope(
         restorationId: 'root-child',
-        child: _TestRestorableWidget(
-          restorationId: 'widget',
-        ),
+        child: _TestRestorableWidget(restorationId: 'widget'),
       ),
     );
     _TestRestorableWidgetState state = tester.state(find.byType(_TestRestorableWidget));
@@ -543,13 +541,11 @@ void main() {
     expect(state.property.value, 10); // Initialized to default value.
   });
 
-  testWidgetsWithLeakTracking('Enabling property stores its data again', (WidgetTester tester) async {
+  testWidgets('Enabling property stores its data again', (WidgetTester tester) async {
     await tester.pumpWidget(
       const RootRestorationScope(
         restorationId: 'root-child',
-        child: _TestRestorableWidget(
-          restorationId: 'widget',
-        ),
+        child: _TestRestorableWidget(restorationId: 'widget'),
       ),
     );
     _TestRestorableWidgetState state = tester.state(find.byType(_TestRestorableWidget));
@@ -581,13 +577,11 @@ void main() {
     expect(state.property.value, 40);
   });
 
-  testWidgetsWithLeakTracking('Unregistering a property removes its data', (WidgetTester tester) async {
+  testWidgets('Unregistering a property removes its data', (WidgetTester tester) async {
     await tester.pumpWidget(
       const RootRestorationScope(
         restorationId: 'root-child',
-        child: _TestRestorableWidget(
-          restorationId: 'widget',
-        ),
+        child: _TestRestorableWidget(restorationId: 'widget'),
       ),
     );
     final _TestRestorableWidgetState state = tester.state(find.byType(_TestRestorableWidget));
@@ -607,13 +601,11 @@ void main() {
     expect(state.bucket!.read<int>('additional'), 11);
   });
 
-  testWidgetsWithLeakTracking('Disposing a property unregisters it, but keeps data', (WidgetTester tester) async {
+  testWidgets('Disposing a property unregisters it, but keeps data', (WidgetTester tester) async {
     await tester.pumpWidget(
       const RootRestorationScope(
         restorationId: 'root-child',
-        child: _TestRestorableWidget(
-          restorationId: 'widget',
-        ),
+        child: _TestRestorableWidget(restorationId: 'widget'),
       ),
     );
     final _TestRestorableWidgetState state = tester.state(find.byType(_TestRestorableWidget));
@@ -650,7 +642,6 @@ void _clearLogs(_TestRestorableWidgetState state) {
 }
 
 class _TestRestorableWidget extends StatefulWidget {
-
   const _TestRestorableWidget({super.key, this.restorationId});
 
   final String? restorationId;
@@ -662,7 +653,7 @@ class _TestRestorableWidget extends StatefulWidget {
 class _TestRestorableWidgetState extends State<_TestRestorableWidget> with RestorationMixin {
   final _TestRestorableProperty property = _TestRestorableProperty(10);
   _TestRestorableProperty? additionalProperty;
-  bool _rerigisterAdditionalProperty = false;
+  bool _reregisterAdditionalProperty = false;
 
   final List<RestorationBucket?> restoreStateLog = <RestorationBucket?>[];
   final List<RestorationBucket?> toggleBucketLog = <RestorationBucket?>[];
@@ -671,7 +662,7 @@ class _TestRestorableWidgetState extends State<_TestRestorableWidget> with Resto
   void restoreState(RestorationBucket? oldBucket, bool initialRestore) {
     restoreStateLog.add(oldBucket);
     registerForRestoration(property, 'foo');
-    if (_rerigisterAdditionalProperty && additionalProperty != null) {
+    if (_reregisterAdditionalProperty && additionalProperty != null) {
       registerForRestoration(additionalProperty!, 'additional');
     }
   }
@@ -705,7 +696,7 @@ class _TestRestorableWidgetState extends State<_TestRestorableWidget> with Resto
   void registerAdditionalProperty({bool reregister = true}) {
     additionalProperty ??= _TestRestorableProperty(11);
     registerForRestoration(additionalProperty!, 'additional');
-    _rerigisterAdditionalProperty = reregister;
+    _reregisterAdditionalProperty = reregister;
   }
 
   void unregisterAdditionalProperty() {
@@ -722,20 +713,13 @@ class _TestRestorableWidgetState extends State<_TestRestorableWidget> with Resto
 
 Map<String, dynamic> _createRawDataSet() {
   return <String, dynamic>{
-    valuesMapKey: <String, dynamic>{
-      'value1' : 10,
-      'value2' : 'Hello',
-    },
+    valuesMapKey: <String, dynamic>{'value1': 10, 'value2': 'Hello'},
     childrenMapKey: <String, dynamic>{
-      'child1' : <String, dynamic>{
-        valuesMapKey : <String, dynamic>{
-          'foo': 22,
-        },
+      'child1': <String, dynamic>{
+        valuesMapKey: <String, dynamic>{'foo': 22},
       },
-      'child2' : <String, dynamic>{
-        valuesMapKey : <String, dynamic>{
-          'bar': 33,
-        },
+      'child2': <String, dynamic>{
+        valuesMapKey: <String, dynamic>{'bar': 33},
       },
     },
   };
@@ -770,6 +754,7 @@ class _TestRestorableProperty extends RestorableProperty<Object?> {
     assert(isRegistered);
     return _value;
   }
+
   Object? _value;
   set value(Object? value) {
     _value = value;

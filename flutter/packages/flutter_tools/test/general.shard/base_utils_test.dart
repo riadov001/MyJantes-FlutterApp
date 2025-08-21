@@ -9,7 +9,7 @@ import '../src/common.dart';
 void main() {
   group('ItemListNotifier', () {
     test('sends notifications', () async {
-      final ItemListNotifier<String> list = ItemListNotifier<String>();
+      final list = ItemListNotifier<String>();
       expect(list.items, isEmpty);
 
       final Future<List<String>> addedStreamItems = list.onAdded.toList();
@@ -35,6 +35,28 @@ void main() {
       expect(removedItems.length, 2);
       expect(removedItems.first, 'aaa');
       expect(removedItems[1], 'bbb');
+    });
+
+    test('becomes populated when item is added', () async {
+      final list = ItemListNotifier<String>();
+      expect(list.isPopulated, false);
+      expect(list.items, isEmpty);
+
+      // Becomes populated when a new list is added.
+      list.updateWithNewList(<String>['a']);
+      expect(list.isPopulated, true);
+      expect(list.items, <String>['a']);
+
+      // Remain populated even when the last item is removed.
+      list.removeItem('a');
+      expect(list.isPopulated, true);
+      expect(list.items, isEmpty);
+    });
+
+    test('is populated by default if initialized with list of items', () async {
+      final list = ItemListNotifier<String>.from(<String>['a']);
+      expect(list.isPopulated, true);
+      expect(list.items, <String>['a']);
     });
   });
 }

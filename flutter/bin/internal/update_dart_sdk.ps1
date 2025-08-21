@@ -20,8 +20,8 @@ $cachePath = "$flutterRoot\bin\cache"
 $dartSdkPath = "$cachePath\dart-sdk"
 $dartSdkLicense = "$cachePath\LICENSE.dart_sdk_archive.md"
 $engineStamp = "$cachePath\engine-dart-sdk.stamp"
-$engineVersion = (Get-Content "$flutterRoot\bin\internal\engine.version")
-$engineRealm = (Get-Content "$flutterRoot\bin\internal\engine.realm")
+$engineVersion = (Get-Content "$flutterRoot\bin\cache\engine.stamp")
+$engineRealm = (Get-Content "$flutterRoot\bin\cache\engine.realm")
 
 $oldDartSdkPrefix = "dart-sdk.old"
 
@@ -47,7 +47,22 @@ if (-not $dartSdkBaseUrl) {
 if ($engineRealm) {
     $dartSdkBaseUrl = "$dartSdkBaseUrl/$engineRealm"
 }
-$dartZipName = "dart-sdk-windows-x64.zip"
+
+# It's important to use the native Dart SDK as the default target architecture
+# for Flutter Windows builds depend on the Dart executable's architecture.
+$dartZipNameX64 = "dart-sdk-windows-x64.zip"
+$dartZipNameArm64 = "dart-sdk-windows-arm64.zip"
+$dartZipName = $dartZipNameX64
+if ($env:PROCESSOR_ARCHITECTURE -eq "ARM64") {
+    $dartSdkArm64Url = "$dartSdkBaseUrl/flutter_infra_release/flutter/$engineVersion/$dartZipNameArm64"
+    Try {
+        Invoke-WebRequest -Uri $dartSdkArm64Url -UseBasicParsing -Method Head | Out-Null
+        $dartZipName = $dartZipNameArm64
+    }
+    Catch {
+        Write-Host "The current channel's Dart SDK does not support Windows Arm64, falling back to Windows x64..."
+    }
+}
 $dartSdkUrl = "$dartSdkBaseUrl/flutter_infra_release/flutter/$engineVersion/$dartZipName"
 
 if ((Test-Path $dartSdkPath) -or (Test-Path $dartSdkLicense)) {

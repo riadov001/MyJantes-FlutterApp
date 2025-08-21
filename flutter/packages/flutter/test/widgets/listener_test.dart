@@ -8,12 +8,11 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:leak_tracker_flutter_testing/leak_tracker_flutter_testing.dart';
 
 import 'gesture_utils.dart';
 
 void main() {
-  testWidgetsWithLeakTracking('Events bubble up the tree', (WidgetTester tester) async {
+  testWidgets('Events bubble up the tree', (WidgetTester tester) async {
     final List<String> log = <String>[];
 
     await tester.pumpWidget(
@@ -40,14 +39,10 @@ void main() {
 
     await tester.tap(find.text('X'));
 
-    expect(log, equals(<String>[
-      'bottom',
-      'middle',
-      'top',
-    ]));
+    expect(log, equals(<String>['bottom', 'middle', 'top']));
   });
 
-  testWidgetsWithLeakTracking('Detects hover events from touch devices', (WidgetTester tester) async {
+  testWidgets('Detects hover events from touch devices', (WidgetTester tester) async {
     final List<String> log = <String>[];
 
     await tester.pumpWidget(
@@ -69,13 +64,11 @@ void main() {
     await gesture.addPointer();
     await gesture.moveTo(tester.getCenter(find.byType(Listener)));
 
-    expect(log, equals(<String>[
-      'bottom',
-    ]));
+    expect(log, equals(<String>['bottom']));
   });
 
   group('transformed events', () {
-    testWidgetsWithLeakTracking('simple offset for touch/signal', (WidgetTester tester) async {
+    testWidgets('simple offset for touch/signal', (WidgetTester tester) async {
       final List<PointerEvent> events = <PointerEvent>[];
       final Key key = UniqueKey();
 
@@ -94,12 +87,7 @@ void main() {
             onPointerSignal: (PointerSignalEvent event) {
               events.add(event);
             },
-            child: Container(
-              key: key,
-              color: Colors.red,
-              height: 100,
-              width: 100,
-            ),
+            child: Container(key: key, color: Colors.red, height: 100, width: 100),
           ),
         ),
       );
@@ -146,7 +134,7 @@ void main() {
       expect(events.single.transform, expectedTransform);
     });
 
-    testWidgetsWithLeakTracking('scaled for touch/signal', (WidgetTester tester) async {
+    testWidgets('scaled for touch/signal', (WidgetTester tester) async {
       final List<PointerEvent> events = <PointerEvent>[];
       final Key key = UniqueKey();
 
@@ -170,12 +158,7 @@ void main() {
               onPointerSignal: (PointerSignalEvent event) {
                 events.add(event);
               },
-              child: Container(
-                key: key,
-                color: Colors.red,
-                height: 100,
-                width: 100,
-              ),
+              child: Container(key: key, color: Colors.red, height: 100, width: 100),
             ),
           ),
         ),
@@ -223,7 +206,7 @@ void main() {
       expect(events.single.transform, expectedTransform);
     });
 
-    testWidgetsWithLeakTracking('scaled and offset for touch/signal', (WidgetTester tester) async {
+    testWidgets('scaled and offset for touch/signal', (WidgetTester tester) async {
       final List<PointerEvent> events = <PointerEvent>[];
       final Key key = UniqueKey();
 
@@ -246,12 +229,7 @@ void main() {
               onPointerSignal: (PointerSignalEvent event) {
                 events.add(event);
               },
-              child: Container(
-                key: key,
-                color: Colors.red,
-                height: 100,
-                width: 100,
-              ),
+              child: Container(key: key, color: Colors.red, height: 100, width: 100),
             ),
           ),
         ),
@@ -301,7 +279,7 @@ void main() {
       expect(events.single.transform, expectedTransform);
     });
 
-    testWidgetsWithLeakTracking('rotated for touch/signal', (WidgetTester tester) async {
+    testWidgets('rotated for touch/signal', (WidgetTester tester) async {
       final List<PointerEvent> events = <PointerEvent>[];
       final Key key = UniqueKey();
 
@@ -323,12 +301,7 @@ void main() {
               onPointerSignal: (PointerSignalEvent event) {
                 events.add(event);
               },
-              child: Container(
-                key: key,
-                color: Colors.red,
-                height: 100,
-                width: 100,
-              ),
+              child: Container(key: key, color: Colors.red, height: 100, width: 100),
             ),
           ),
         ),
@@ -379,7 +352,9 @@ void main() {
     });
   });
 
-  testWidgetsWithLeakTracking("RenderPointerListener's debugFillProperties when default", (WidgetTester tester) async {
+  testWidgets("RenderPointerListener's debugFillProperties when default", (
+    WidgetTester tester,
+  ) async {
     final DiagnosticPropertiesBuilder builder = DiagnosticPropertiesBuilder();
     final RenderPointerListener renderListener = RenderPointerListener();
     addTearDown(renderListener.dispose);
@@ -387,9 +362,9 @@ void main() {
     renderListener.debugFillProperties(builder);
 
     final List<String> description = builder.properties
-      .where((DiagnosticsNode node) => !node.isFiltered(DiagnosticLevel.info))
-      .map((DiagnosticsNode node) => node.toString())
-      .toList();
+        .where((DiagnosticsNode node) => !node.isFiltered(DiagnosticLevel.info))
+        .map((DiagnosticsNode node) => node.toString())
+        .toList();
 
     expect(description, <String>[
       'parentData: MISSING',
@@ -400,7 +375,7 @@ void main() {
     ]);
   });
 
-  testWidgetsWithLeakTracking("RenderPointerListener's debugFillProperties when full", (WidgetTester tester) async {
+  testWidgets("RenderPointerListener's debugFillProperties when full", (WidgetTester tester) async {
     final DiagnosticPropertiesBuilder builder = DiagnosticPropertiesBuilder();
 
     final RenderErrorBox renderErrorBox = RenderErrorBox();
@@ -421,9 +396,9 @@ void main() {
     renderListener.debugFillProperties(builder);
 
     final List<String> description = builder.properties
-      .where((DiagnosticsNode node) => !node.isFiltered(DiagnosticLevel.info))
-      .map((DiagnosticsNode node) => node.toString())
-      .toList();
+        .where((DiagnosticsNode node) => !node.isFiltered(DiagnosticLevel.info))
+        .map((DiagnosticsNode node) => node.toString())
+        .toList();
 
     expect(description, <String>[
       'parentData: MISSING',

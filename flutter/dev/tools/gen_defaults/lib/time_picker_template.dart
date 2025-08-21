@@ -5,9 +5,12 @@
 import 'template.dart';
 
 class TimePickerTemplate extends TokenTemplate {
-  const TimePickerTemplate(super.blockName, super.fileName, super.tokens, {
+  const TimePickerTemplate(
+    super.blockName,
+    super.fileName,
+    super.tokens, {
     super.colorSchemePrefix = '_colors.',
-    super.textThemePrefix = '_textTheme.'
+    super.textThemePrefix = '_textTheme.',
   });
 
   static const String tokenGroup = 'md.comp.time-picker';
@@ -17,11 +20,13 @@ class TimePickerTemplate extends TokenTemplate {
   static const String variant = '';
 
   @override
-  String generate() => '''
+  String generate() =>
+      '''
 class _${blockName}DefaultsM3 extends _TimePickerDefaults {
-  _${blockName}DefaultsM3(this.context);
+  _${blockName}DefaultsM3(this.context, { this.entryMode = TimePickerEntryMode.dial });
 
   final BuildContext context;
+  final TimePickerEntryMode entryMode;
 
   late final ColorScheme _colors = Theme.of(context).colorScheme;
   late final TextTheme _textTheme = Theme.of(context).textTheme;
@@ -284,12 +289,17 @@ class _${blockName}DefaultsM3 extends _TimePickerDefaults {
       // TODO(tahatesser): Update this when https://github.com/flutter/flutter/issues/131247 is fixed.
       // This is using the correct text style from Material 3 spec.
       // https://m3.material.io/components/time-pickers/specs#fd0b6939-edab-4058-82e1-93d163945215
-      return _textTheme.displayMedium!.copyWith(color: _hourMinuteTextColor.resolve(states));
+      return switch (entryMode) {
+        TimePickerEntryMode.dial || TimePickerEntryMode.dialOnly
+          => _textTheme.displayLarge!.copyWith(color: _hourMinuteTextColor.resolve(states)),
+        TimePickerEntryMode.input || TimePickerEntryMode.inputOnly
+          => _textTheme.displayMedium!.copyWith(color: _hourMinuteTextColor.resolve(states)),
+      };
     });
   }
 
   @override
-  InputDecorationTheme get inputDecorationTheme {
+  InputDecorationThemeData get inputDecorationTheme {
     // This is NOT correct, but there's no token for
     // 'time-input.container.shape', so this is using the radius from the shape
     // for the hour/minute selector. It's a BorderRadiusGeometry, so we have to
@@ -297,7 +307,7 @@ class _${blockName}DefaultsM3 extends _TimePickerDefaults {
     final BorderRadius selectorRadius = ${shape('$hourMinuteComponent.container')}
       .borderRadius
       .resolve(Directionality.of(context));
-    return InputDecorationTheme(
+    return InputDecorationThemeData(
       contentPadding: EdgeInsets.zero,
       filled: true,
       // This should be derived from a token, but there isn't one for 'time-input'.
@@ -325,13 +335,27 @@ class _${blockName}DefaultsM3 extends _TimePickerDefaults {
       // TODO(rami-a): Remove this workaround once
       // https://github.com/flutter/flutter/issues/54104
       // is fixed.
-      errorStyle: const TextStyle(fontSize: 0, height: 0),
+      errorStyle: const TextStyle(fontSize: 0),
     );
   }
 
   @override
   ShapeBorder get shape {
     return ${shape("$tokenGroup.container")};
+  }
+
+  @override
+  MaterialStateProperty<Color?>? get timeSelectorSeparatorColor {
+    // TODO(tahatesser): Update this when tokens are available.
+    // This is taken from https://m3.material.io/components/time-pickers/specs.
+    return MaterialStatePropertyAll<Color>(_colors.onSurface);
+  }
+
+  @override
+  MaterialStateProperty<TextStyle?>? get timeSelectorSeparatorTextStyle {
+    // TODO(tahatesser): Update this when tokens are available.
+    // This is taken from https://m3.material.io/components/time-pickers/specs.
+    return MaterialStatePropertyAll<TextStyle?>(_textTheme.displayLarge);
   }
 }
 ''';

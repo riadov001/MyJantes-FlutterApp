@@ -37,15 +37,18 @@ class _BottomAppBarDemoState extends State<BottomAppBarDemo> {
   bool _isElevated = true;
   bool _isVisible = true;
 
-  FloatingActionButtonLocation get _fabLocation =>
-      _isVisible ? FloatingActionButtonLocation.endContained : FloatingActionButtonLocation.endFloat;
+  FloatingActionButtonLocation get _fabLocation => _isVisible
+      ? FloatingActionButtonLocation.endContained
+      : FloatingActionButtonLocation.endFloat;
 
   void _listen() {
-    final ScrollDirection direction = _controller.position.userScrollDirection;
-    if (direction == ScrollDirection.forward) {
-      _show();
-    } else if (direction == ScrollDirection.reverse) {
-      _hide();
+    switch (_controller.position.userScrollDirection) {
+      case ScrollDirection.idle:
+        break;
+      case ScrollDirection.forward:
+        _show();
+      case ScrollDirection.reverse:
+        _hide();
     }
   }
 
@@ -75,10 +78,7 @@ class _BottomAppBarDemoState extends State<BottomAppBarDemo> {
 
   void _addNewItem() {
     setState(() {
-      items.insert(
-        0,
-        Container(color: colors[items.length % 5], height: 150.0),
-      );
+      items.insert(0, Container(color: colors[items.length % 5], height: 150.0));
     });
   }
 
@@ -99,11 +99,8 @@ class _BottomAppBarDemoState extends State<BottomAppBarDemo> {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      theme: ThemeData(useMaterial3: true),
       home: Scaffold(
-        appBar: AppBar(
-          title: const Text('Bottom App Bar Demo'),
-        ),
+        appBar: AppBar(title: const Text('Bottom App Bar Demo')),
         body: Column(
           children: <Widget>[
             SwitchListTile(
@@ -117,10 +114,7 @@ class _BottomAppBarDemoState extends State<BottomAppBarDemo> {
               onChanged: _onElevatedChanged,
             ),
             Expanded(
-              child: ListView(
-                controller: _controller,
-                children: items.toList(),
-              ),
+              child: ListView(controller: _controller, children: items.toList()),
             ),
           ],
         ),
@@ -140,10 +134,7 @@ class _BottomAppBarDemoState extends State<BottomAppBarDemo> {
 }
 
 class _DemoBottomAppBar extends StatelessWidget {
-  const _DemoBottomAppBar({
-    required this.isElevated,
-    required this.isVisible,
-  });
+  const _DemoBottomAppBar({required this.isElevated, required this.isVisible});
 
   final bool isElevated;
   final bool isVisible;
@@ -163,10 +154,7 @@ class _DemoBottomAppBar extends StatelessWidget {
               onPressed: () {
                 final SnackBar snackBar = SnackBar(
                   content: const Text('Yay! A SnackBar!'),
-                  action: SnackBarAction(
-                    label: 'Undo',
-                    onPressed: () {},
-                  ),
+                  action: SnackBarAction(label: 'Undo', onPressed: () {}),
                 );
 
                 // Find the ScaffoldMessenger in the widget tree
@@ -174,16 +162,8 @@ class _DemoBottomAppBar extends StatelessWidget {
                 ScaffoldMessenger.of(context).showSnackBar(snackBar);
               },
             ),
-            IconButton(
-              tooltip: 'Search',
-              icon: const Icon(Icons.search),
-              onPressed: () {},
-            ),
-            IconButton(
-              tooltip: 'Favorite',
-              icon: const Icon(Icons.favorite),
-              onPressed: () {},
-            ),
+            IconButton(tooltip: 'Search', icon: const Icon(Icons.search), onPressed: () {}),
+            IconButton(tooltip: 'Favorite', icon: const Icon(Icons.favorite), onPressed: () {}),
           ],
         ),
       ),

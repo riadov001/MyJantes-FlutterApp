@@ -25,6 +25,9 @@
   "noSpellCheckReplacementsLabel": "Tiada Penggantian Ditemukan",
   "menuDismissLabel": "Ketepikan menu",
   "lookUpButtonLabel": "Lihat ke Atas",
-  "searchWebButtonLabel": "Search Web",
-  "shareButtonLabel": "Share..."
+  "searchWebButtonLabel": "Buat carian pada Web",
+  "shareButtonLabel": "Kongsi...",
+  "clearButtonLabel": "Kosongkan",
+  "cancelButtonLabel": "Batal",
+  "backButtonLabel": "Kembali"
 }

@@ -28,27 +28,29 @@ import 'package:flutter_tools/src/ios/mac.dart';
 import 'package:flutter_tools/src/ios/xcode_debug.dart';
 import 'package:flutter_tools/src/macos/xcdevice.dart';
 import 'package:test/fake.dart';
+import 'package:unified_analytics/unified_analytics.dart';
 
 import '../../src/common.dart';
 import '../../src/fake_process_manager.dart';
 
 void main() {
-  final FakePlatform macPlatform = FakePlatform(operatingSystem: 'macos');
-  final FakePlatform linuxPlatform = FakePlatform();
-  final FakePlatform windowsPlatform = FakePlatform(operatingSystem: 'windows');
+  final macPlatform = FakePlatform(operatingSystem: 'macos');
+  final linuxPlatform = FakePlatform();
+  final windowsPlatform = FakePlatform(operatingSystem: 'windows');
 
   group('IOSDevice', () {
-    final List<Platform> unsupportedPlatforms = <Platform>[linuxPlatform, windowsPlatform];
+    final unsupportedPlatforms = <Platform>[linuxPlatform, windowsPlatform];
     late Cache cache;
     late Logger logger;
     late IOSDeploy iosDeploy;
     late IMobileDevice iMobileDevice;
     late FileSystem fileSystem;
     late IOSCoreDeviceControl coreDeviceControl;
+    late IOSCoreDeviceLauncher coreDeviceLauncher;
     late XcodeDebug xcodeDebug;
 
     setUp(() {
-      final Artifacts artifacts = Artifacts.test();
+      final artifacts = Artifacts.test();
       cache = Cache.test(processManager: FakeProcessManager.any());
       logger = BufferLogger.test();
       fileSystem = MemoryFileSystem.test();
@@ -66,143 +68,180 @@ void main() {
         processManager: FakeProcessManager.any(),
       );
       coreDeviceControl = FakeIOSCoreDeviceControl();
+      coreDeviceLauncher = FakeIOSCoreDeviceLauncher();
       xcodeDebug = FakeXcodeDebug();
     });
 
-    testWithoutContext('successfully instantiates on Mac OS', () {
-      final IOSDevice device = IOSDevice(
+    testWithoutContext('successfully instantiates on Mac OS', () async {
+      final device = IOSDevice(
         'device-123',
         iProxy: IProxy.test(logger: logger, processManager: FakeProcessManager.any()),
         fileSystem: fileSystem,
         logger: logger,
         platform: macPlatform,
         iosDeploy: iosDeploy,
+        analytics: FakeAnalytics(),
         iMobileDevice: iMobileDevice,
         coreDeviceControl: coreDeviceControl,
+        coreDeviceLauncher: coreDeviceLauncher,
         xcodeDebug: xcodeDebug,
         name: 'iPhone 1',
         sdkVersion: '13.3',
         cpuArchitecture: DarwinArch.arm64,
         connectionInterface: DeviceConnectionInterface.attached,
         isConnected: true,
+        isPaired: true,
         devModeEnabled: true,
         isCoreDevice: false,
       );
-      expect(device.isSupported(), isTrue);
+      expect(await device.isSupported(), isTrue);
     });
 
-    testWithoutContext('32-bit devices are unsupported', () {
-      final IOSDevice device = IOSDevice(
+    testWithoutContext('32-bit devices are unsupported', () async {
+      final device = IOSDevice(
         'device-123',
         iProxy: IProxy.test(logger: logger, processManager: FakeProcessManager.any()),
         fileSystem: fileSystem,
         logger: logger,
+        analytics: FakeAnalytics(),
         platform: macPlatform,
         iosDeploy: iosDeploy,
         iMobileDevice: iMobileDevice,
         coreDeviceControl: coreDeviceControl,
+        coreDeviceLauncher: coreDeviceLauncher,
         xcodeDebug: xcodeDebug,
         name: 'iPhone 1',
         cpuArchitecture: DarwinArch.armv7,
         connectionInterface: DeviceConnectionInterface.attached,
         isConnected: true,
+        isPaired: true,
         devModeEnabled: true,
         isCoreDevice: false,
       );
-      expect(device.isSupported(), isFalse);
+      expect(await device.isSupported(), isFalse);
     });
 
     testWithoutContext('parses major version', () {
-      expect(IOSDevice(
-        'device-123',
-        iProxy: IProxy.test(logger: logger, processManager: FakeProcessManager.any()),
-        fileSystem: fileSystem,
-        logger: logger,
-        platform: macPlatform,
-        iosDeploy: iosDeploy,
-        iMobileDevice: iMobileDevice,
-        coreDeviceControl: coreDeviceControl,
-        xcodeDebug: xcodeDebug,
-        name: 'iPhone 1',
-        cpuArchitecture: DarwinArch.arm64,
-        sdkVersion: '1.0.0',
-        connectionInterface: DeviceConnectionInterface.attached,
-        isConnected: true,
-        devModeEnabled: true,
-        isCoreDevice: false,
-      ).majorSdkVersion, 1);
-      expect(IOSDevice(
-        'device-123',
-        iProxy: IProxy.test(logger: logger, processManager: FakeProcessManager.any()),
-        fileSystem: fileSystem,
-        logger: logger,
-        platform: macPlatform,
-        iosDeploy: iosDeploy,
-        iMobileDevice: iMobileDevice,
-        coreDeviceControl: coreDeviceControl,
-        xcodeDebug: xcodeDebug,
-        name: 'iPhone 1',
-        cpuArchitecture: DarwinArch.arm64,
-        sdkVersion: '13.1.1',
-        connectionInterface: DeviceConnectionInterface.attached,
-        isConnected: true,
-        devModeEnabled: true,
-        isCoreDevice: false,
-      ).majorSdkVersion, 13);
-      expect(IOSDevice(
-        'device-123',
-        iProxy: IProxy.test(logger: logger, processManager: FakeProcessManager.any()),
-        fileSystem: fileSystem,
-        logger: logger,
-        platform: macPlatform,
-        iosDeploy: iosDeploy,
-        iMobileDevice: iMobileDevice,
-        coreDeviceControl: coreDeviceControl,
-        xcodeDebug: xcodeDebug,
-        name: 'iPhone 1',
-        cpuArchitecture: DarwinArch.arm64,
-        sdkVersion: '10',
-        connectionInterface: DeviceConnectionInterface.attached,
-        isConnected: true,
-        devModeEnabled: true,
-        isCoreDevice: false,
-      ).majorSdkVersion, 10);
-      expect(IOSDevice(
-        'device-123',
-        iProxy: IProxy.test(logger: logger, processManager: FakeProcessManager.any()),
-        fileSystem: fileSystem,
-        logger: logger,
-        platform: macPlatform,
-        iosDeploy: iosDeploy,
-        iMobileDevice: iMobileDevice,
-        coreDeviceControl: coreDeviceControl,
-        xcodeDebug: xcodeDebug,
-        name: 'iPhone 1',
-        cpuArchitecture: DarwinArch.arm64,
-        sdkVersion: '0',
-        connectionInterface: DeviceConnectionInterface.attached,
-        isConnected: true,
-        devModeEnabled: true,
-        isCoreDevice: false,
-      ).majorSdkVersion, 0);
-      expect(IOSDevice(
-        'device-123',
-        iProxy: IProxy.test(logger: logger, processManager: FakeProcessManager.any()),
-        fileSystem: fileSystem,
-        logger: logger,
-        platform: macPlatform,
-        iosDeploy: iosDeploy,
-        iMobileDevice: iMobileDevice,
-        coreDeviceControl: coreDeviceControl,
-        xcodeDebug: xcodeDebug,
-        name: 'iPhone 1',
-        cpuArchitecture: DarwinArch.arm64,
-        sdkVersion: 'bogus',
-        connectionInterface: DeviceConnectionInterface.attached,
-        isConnected: true,
-        devModeEnabled: true,
-        isCoreDevice: false,
-      ).majorSdkVersion, 0);
+      expect(
+        IOSDevice(
+          'device-123',
+          iProxy: IProxy.test(logger: logger, processManager: FakeProcessManager.any()),
+          fileSystem: fileSystem,
+          logger: logger,
+          analytics: FakeAnalytics(),
+          platform: macPlatform,
+          iosDeploy: iosDeploy,
+          iMobileDevice: iMobileDevice,
+          coreDeviceControl: coreDeviceControl,
+          coreDeviceLauncher: coreDeviceLauncher,
+          xcodeDebug: xcodeDebug,
+          name: 'iPhone 1',
+          cpuArchitecture: DarwinArch.arm64,
+          sdkVersion: '1.0.0',
+          connectionInterface: DeviceConnectionInterface.attached,
+          isConnected: true,
+          isPaired: true,
+          devModeEnabled: true,
+          isCoreDevice: false,
+        ).majorSdkVersion,
+        1,
+      );
+      expect(
+        IOSDevice(
+          'device-123',
+          iProxy: IProxy.test(logger: logger, processManager: FakeProcessManager.any()),
+          fileSystem: fileSystem,
+          logger: logger,
+          analytics: FakeAnalytics(),
+          platform: macPlatform,
+          iosDeploy: iosDeploy,
+          iMobileDevice: iMobileDevice,
+          coreDeviceControl: coreDeviceControl,
+          coreDeviceLauncher: coreDeviceLauncher,
+          xcodeDebug: xcodeDebug,
+          name: 'iPhone 1',
+          cpuArchitecture: DarwinArch.arm64,
+          sdkVersion: '13.1.1',
+          connectionInterface: DeviceConnectionInterface.attached,
+          isConnected: true,
+          isPaired: true,
+          devModeEnabled: true,
+          isCoreDevice: false,
+        ).majorSdkVersion,
+        13,
+      );
+      expect(
+        IOSDevice(
+          'device-123',
+          iProxy: IProxy.test(logger: logger, processManager: FakeProcessManager.any()),
+          fileSystem: fileSystem,
+          logger: logger,
+          analytics: FakeAnalytics(),
+          platform: macPlatform,
+          iosDeploy: iosDeploy,
+          iMobileDevice: iMobileDevice,
+          coreDeviceControl: coreDeviceControl,
+          coreDeviceLauncher: coreDeviceLauncher,
+          xcodeDebug: xcodeDebug,
+          name: 'iPhone 1',
+          cpuArchitecture: DarwinArch.arm64,
+          sdkVersion: '10',
+          connectionInterface: DeviceConnectionInterface.attached,
+          isConnected: true,
+          isPaired: true,
+          devModeEnabled: true,
+          isCoreDevice: false,
+        ).majorSdkVersion,
+        10,
+      );
+      expect(
+        IOSDevice(
+          'device-123',
+          iProxy: IProxy.test(logger: logger, processManager: FakeProcessManager.any()),
+          fileSystem: fileSystem,
+          logger: logger,
+          analytics: FakeAnalytics(),
+          platform: macPlatform,
+          iosDeploy: iosDeploy,
+          iMobileDevice: iMobileDevice,
+          coreDeviceControl: coreDeviceControl,
+          coreDeviceLauncher: coreDeviceLauncher,
+          xcodeDebug: xcodeDebug,
+          name: 'iPhone 1',
+          cpuArchitecture: DarwinArch.arm64,
+          sdkVersion: '0',
+          connectionInterface: DeviceConnectionInterface.attached,
+          isConnected: true,
+          isPaired: true,
+          devModeEnabled: true,
+          isCoreDevice: false,
+        ).majorSdkVersion,
+        0,
+      );
+      expect(
+        IOSDevice(
+          'device-123',
+          iProxy: IProxy.test(logger: logger, processManager: FakeProcessManager.any()),
+          fileSystem: fileSystem,
+          logger: logger,
+          analytics: FakeAnalytics(),
+          platform: macPlatform,
+          iosDeploy: iosDeploy,
+          iMobileDevice: iMobileDevice,
+          coreDeviceControl: coreDeviceControl,
+          coreDeviceLauncher: coreDeviceLauncher,
+          xcodeDebug: xcodeDebug,
+          name: 'iPhone 1',
+          cpuArchitecture: DarwinArch.arm64,
+          sdkVersion: 'bogus',
+          connectionInterface: DeviceConnectionInterface.attached,
+          isConnected: true,
+          isPaired: true,
+          devModeEnabled: true,
+          isCoreDevice: false,
+        ).majorSdkVersion,
+        0,
+      );
     });
 
     testWithoutContext('parses sdk version', () {
@@ -211,20 +250,23 @@ void main() {
         iProxy: IProxy.test(logger: logger, processManager: FakeProcessManager.any()),
         fileSystem: fileSystem,
         logger: logger,
+        analytics: FakeAnalytics(),
         platform: macPlatform,
         iosDeploy: iosDeploy,
         iMobileDevice: iMobileDevice,
         coreDeviceControl: coreDeviceControl,
+        coreDeviceLauncher: coreDeviceLauncher,
         xcodeDebug: xcodeDebug,
         name: 'iPhone 1',
         cpuArchitecture: DarwinArch.arm64,
         sdkVersion: '13.3.1',
         connectionInterface: DeviceConnectionInterface.attached,
         isConnected: true,
+        isPaired: true,
         devModeEnabled: true,
         isCoreDevice: false,
       ).sdkVersion;
-      Version expectedVersion = Version(13, 3, 1, text: '13.3.1');
+      var expectedVersion = Version(13, 3, 1, text: '13.3.1');
       expect(sdkVersion, isNotNull);
       expect(sdkVersion!.toString(), expectedVersion.toString());
       expect(sdkVersion.compareTo(expectedVersion), 0);
@@ -234,16 +276,19 @@ void main() {
         iProxy: IProxy.test(logger: logger, processManager: FakeProcessManager.any()),
         fileSystem: fileSystem,
         logger: logger,
+        analytics: FakeAnalytics(),
         platform: macPlatform,
         iosDeploy: iosDeploy,
         iMobileDevice: iMobileDevice,
         coreDeviceControl: coreDeviceControl,
+        coreDeviceLauncher: coreDeviceLauncher,
         xcodeDebug: xcodeDebug,
         name: 'iPhone 1',
         cpuArchitecture: DarwinArch.arm64,
         sdkVersion: '13.3.1 (20ADBC)',
         connectionInterface: DeviceConnectionInterface.attached,
         isConnected: true,
+        isPaired: true,
         devModeEnabled: true,
         isCoreDevice: false,
       ).sdkVersion;
@@ -257,16 +302,19 @@ void main() {
         iProxy: IProxy.test(logger: logger, processManager: FakeProcessManager.any()),
         fileSystem: fileSystem,
         logger: logger,
+        analytics: FakeAnalytics(),
         platform: macPlatform,
         iosDeploy: iosDeploy,
         iMobileDevice: iMobileDevice,
         coreDeviceControl: coreDeviceControl,
+        coreDeviceLauncher: coreDeviceLauncher,
         xcodeDebug: xcodeDebug,
         name: 'iPhone 1',
         cpuArchitecture: DarwinArch.arm64,
         sdkVersion: '16.4.1(a) (20ADBC)',
         connectionInterface: DeviceConnectionInterface.attached,
         isConnected: true,
+        isPaired: true,
         devModeEnabled: true,
         isCoreDevice: false,
       ).sdkVersion;
@@ -280,16 +328,19 @@ void main() {
         iProxy: IProxy.test(logger: logger, processManager: FakeProcessManager.any()),
         fileSystem: fileSystem,
         logger: logger,
+        analytics: FakeAnalytics(),
         platform: macPlatform,
         iosDeploy: iosDeploy,
         iMobileDevice: iMobileDevice,
         coreDeviceControl: coreDeviceControl,
+        coreDeviceLauncher: coreDeviceLauncher,
         xcodeDebug: xcodeDebug,
         name: 'iPhone 1',
         cpuArchitecture: DarwinArch.arm64,
         sdkVersion: '0',
         connectionInterface: DeviceConnectionInterface.attached,
         isConnected: true,
+        isPaired: true,
         devModeEnabled: true,
         isCoreDevice: false,
       ).sdkVersion;
@@ -303,15 +354,18 @@ void main() {
         iProxy: IProxy.test(logger: logger, processManager: FakeProcessManager.any()),
         fileSystem: fileSystem,
         logger: logger,
+        analytics: FakeAnalytics(),
         platform: macPlatform,
         iosDeploy: iosDeploy,
         iMobileDevice: iMobileDevice,
         coreDeviceControl: coreDeviceControl,
+        coreDeviceLauncher: coreDeviceLauncher,
         xcodeDebug: xcodeDebug,
         name: 'iPhone 1',
         cpuArchitecture: DarwinArch.arm64,
         connectionInterface: DeviceConnectionInterface.attached,
         isConnected: true,
+        isPaired: true,
         devModeEnabled: true,
         isCoreDevice: false,
       ).sdkVersion;
@@ -322,16 +376,19 @@ void main() {
         iProxy: IProxy.test(logger: logger, processManager: FakeProcessManager.any()),
         fileSystem: fileSystem,
         logger: logger,
+        analytics: FakeAnalytics(),
         platform: macPlatform,
         iosDeploy: iosDeploy,
         iMobileDevice: iMobileDevice,
         coreDeviceControl: coreDeviceControl,
+        coreDeviceLauncher: coreDeviceLauncher,
         xcodeDebug: xcodeDebug,
         name: 'iPhone 1',
         cpuArchitecture: DarwinArch.arm64,
         sdkVersion: 'bogus',
         connectionInterface: DeviceConnectionInterface.attached,
         isConnected: true,
+        isPaired: true,
         devModeEnabled: true,
         isCoreDevice: false,
       ).sdkVersion;
@@ -339,44 +396,50 @@ void main() {
     });
 
     testWithoutContext('has build number in sdkNameAndVersion', () async {
-      final IOSDevice device = IOSDevice(
+      final device = IOSDevice(
         'device-123',
         iProxy: IProxy.test(logger: logger, processManager: FakeProcessManager.any()),
         fileSystem: fileSystem,
         logger: logger,
+        analytics: FakeAnalytics(),
         platform: macPlatform,
         iosDeploy: iosDeploy,
         iMobileDevice: iMobileDevice,
         coreDeviceControl: coreDeviceControl,
+        coreDeviceLauncher: coreDeviceLauncher,
         xcodeDebug: xcodeDebug,
         name: 'iPhone 1',
         sdkVersion: '13.3 17C54',
         cpuArchitecture: DarwinArch.arm64,
         connectionInterface: DeviceConnectionInterface.attached,
         isConnected: true,
+        isPaired: true,
         devModeEnabled: true,
         isCoreDevice: false,
       );
 
-      expect(await device.sdkNameAndVersion,'iOS 13.3 17C54');
+      expect(await device.sdkNameAndVersion, 'iOS 13.3 17C54');
     });
 
     testWithoutContext('Supports debug, profile, and release modes', () {
-      final IOSDevice device = IOSDevice(
+      final device = IOSDevice(
         'device-123',
         iProxy: IProxy.test(logger: logger, processManager: FakeProcessManager.any()),
         fileSystem: fileSystem,
         logger: logger,
+        analytics: FakeAnalytics(),
         platform: macPlatform,
         iosDeploy: iosDeploy,
         iMobileDevice: iMobileDevice,
         coreDeviceControl: coreDeviceControl,
+        coreDeviceLauncher: coreDeviceLauncher,
         xcodeDebug: xcodeDebug,
         name: 'iPhone 1',
         sdkVersion: '13.3',
         cpuArchitecture: DarwinArch.arm64,
         connectionInterface: DeviceConnectionInterface.attached,
         isConnected: true,
+        isPaired: true,
         devModeEnabled: true,
         isCoreDevice: false,
       );
@@ -387,32 +450,35 @@ void main() {
       expect(device.supportsRuntimeMode(BuildMode.jitRelease), false);
     });
 
-    for (final Platform platform in unsupportedPlatforms) {
-      testWithoutContext('throws UnsupportedError exception if instantiated on ${platform.operatingSystem}', () {
-        expect(
-          () {
+    for (final platform in unsupportedPlatforms) {
+      testWithoutContext(
+        'throws UnsupportedError exception if instantiated on ${platform.operatingSystem}',
+        () {
+          expect(() {
             IOSDevice(
               'device-123',
               iProxy: IProxy.test(logger: logger, processManager: FakeProcessManager.any()),
               fileSystem: fileSystem,
               logger: logger,
+              analytics: FakeAnalytics(),
               platform: platform,
               iosDeploy: iosDeploy,
               iMobileDevice: iMobileDevice,
               coreDeviceControl: coreDeviceControl,
+              coreDeviceLauncher: coreDeviceLauncher,
               xcodeDebug: xcodeDebug,
               name: 'iPhone 1',
               sdkVersion: '13.3',
               cpuArchitecture: DarwinArch.arm64,
               connectionInterface: DeviceConnectionInterface.attached,
               isConnected: true,
+              isPaired: true,
               devModeEnabled: true,
               isCoreDevice: false,
             );
-          },
-          throwsAssertionError,
-        );
-      });
+          }, throwsAssertionError);
+        },
+      );
     }
 
     group('.dispose()', () {
@@ -432,11 +498,9 @@ void main() {
       late FileSystem fileSystem;
       late IProxy iproxy;
 
-      IOSDevicePortForwarder createPortForwarder(
-          ForwardedPort forwardedPort,
-          IOSDevice device) {
+      IOSDevicePortForwarder createPortForwarder(ForwardedPort forwardedPort, IOSDevice device) {
         iproxy = IProxy.test(logger: logger, processManager: FakeProcessManager.any());
-        final IOSDevicePortForwarder portForwarder = IOSDevicePortForwarder(
+        final portForwarder = IOSDevicePortForwarder(
           id: device.id,
           logger: logger,
           operatingSystemUtils: OperatingSystemUtils(
@@ -451,11 +515,8 @@ void main() {
         return portForwarder;
       }
 
-      IOSDeviceLogReader createLogReader(
-          IOSDevice device,
-          IOSApp appPackage,
-          Process process) {
-        final IOSDeviceLogReader logReader = IOSDeviceLogReader.create(
+      IOSDeviceLogReader createLogReader(IOSDevice device, IOSApp appPackage, Process process) {
+        final logReader = IOSDeviceLogReader.create(
           device: device,
           app: appPackage,
           iMobileDevice: IMobileDevice.test(processManager: FakeProcessManager.any()),
@@ -471,9 +532,7 @@ void main() {
         process2 = FakeProcess();
         process3 = FakeProcess();
         forwardedPort = ForwardedPort.withContext(123, 456, process3);
-        cache = Cache.test(
-          processManager: FakeProcessManager.any(),
-        );
+        cache = Cache.test(processManager: FakeProcessManager.any());
         fileSystem = MemoryFileSystem.test();
         logger = BufferLogger.test();
         iosDeploy = IOSDeploy(
@@ -491,16 +550,19 @@ void main() {
           iProxy: IProxy.test(logger: logger, processManager: FakeProcessManager.any()),
           fileSystem: fileSystem,
           logger: logger,
+          analytics: FakeAnalytics(),
           platform: macPlatform,
           iosDeploy: iosDeploy,
           iMobileDevice: iMobileDevice,
           coreDeviceControl: coreDeviceControl,
+          coreDeviceLauncher: coreDeviceLauncher,
           xcodeDebug: xcodeDebug,
           name: 'iPhone 1',
           sdkVersion: '13.3',
           cpuArchitecture: DarwinArch.arm64,
           connectionInterface: DeviceConnectionInterface.attached,
           isConnected: true,
+          isPaired: true,
           devModeEnabled: true,
           isCoreDevice: false,
         );
@@ -529,13 +591,14 @@ void main() {
     late IMobileDevice iMobileDevice;
     late IOSWorkflow iosWorkflow;
     late IOSCoreDeviceControl coreDeviceControl;
+    late IOSCoreDeviceLauncher coreDeviceLauncher;
     late XcodeDebug xcodeDebug;
     late IOSDevice device1;
     late IOSDevice device2;
 
     setUp(() {
       xcdevice = FakeXcdevice();
-      final Artifacts artifacts = Artifacts.test();
+      final artifacts = Artifacts.test();
       cache = Cache.test(processManager: FakeProcessManager.any());
       logger = BufferLogger.test();
       iosWorkflow = FakeIOSWorkflow();
@@ -554,6 +617,7 @@ void main() {
         logger: logger,
       );
       coreDeviceControl = FakeIOSCoreDeviceControl();
+      coreDeviceLauncher = FakeIOSCoreDeviceLauncher();
       xcodeDebug = FakeXcodeDebug();
 
       device1 = IOSDevice(
@@ -563,14 +627,17 @@ void main() {
         cpuArchitecture: DarwinArch.arm64,
         iProxy: IProxy.test(logger: logger, processManager: FakeProcessManager.any()),
         iosDeploy: iosDeploy,
+        analytics: FakeAnalytics(),
         iMobileDevice: iMobileDevice,
         coreDeviceControl: coreDeviceControl,
+        coreDeviceLauncher: coreDeviceLauncher,
         xcodeDebug: xcodeDebug,
         logger: logger,
         platform: macPlatform,
         fileSystem: MemoryFileSystem.test(),
         connectionInterface: DeviceConnectionInterface.attached,
         isConnected: true,
+        isPaired: true,
         devModeEnabled: true,
         isCoreDevice: false,
       );
@@ -582,21 +649,24 @@ void main() {
         cpuArchitecture: DarwinArch.arm64,
         iProxy: IProxy.test(logger: logger, processManager: FakeProcessManager.any()),
         iosDeploy: iosDeploy,
+        analytics: FakeAnalytics(),
         iMobileDevice: iMobileDevice,
         coreDeviceControl: coreDeviceControl,
+        coreDeviceLauncher: coreDeviceLauncher,
         xcodeDebug: xcodeDebug,
         logger: logger,
         platform: macPlatform,
         fileSystem: MemoryFileSystem.test(),
         connectionInterface: DeviceConnectionInterface.attached,
         isConnected: true,
+        isPaired: true,
         devModeEnabled: true,
         isCoreDevice: false,
       );
     });
 
     testWithoutContext('start polling without Xcode', () async {
-      final IOSDevices iosDevices = IOSDevices(
+      final iosDevices = IOSDevices(
         platform: macPlatform,
         xcdevice: xcdevice,
         iosWorkflow: iosWorkflow,
@@ -609,7 +679,7 @@ void main() {
     });
 
     testWithoutContext('start polling', () async {
-      final TestIOSDevices iosDevices = TestIOSDevices(
+      final iosDevices = TestIOSDevices(
         platform: macPlatform,
         xcdevice: xcdevice,
         iosWorkflow: iosWorkflow,
@@ -620,8 +690,8 @@ void main() {
         ..add(<IOSDevice>[])
         ..add(<IOSDevice>[device1, device2]);
 
-      int addedCount = 0;
-      final Completer<void> added = Completer<void>();
+      var addedCount = 0;
+      final added = Completer<void>();
       iosDevices.onAdded.listen((Device device) {
         addedCount++;
         // 2 devices will be added.
@@ -631,7 +701,7 @@ void main() {
         }
       });
 
-      final Completer<void> removed = Completer<void>();
+      final removed = Completer<void>();
       iosDevices.onRemoved.listen((Device device) {
         // Will throw over-completion if called more than once.
         removed.complete();
@@ -640,20 +710,20 @@ void main() {
       await iosDevices.startPolling();
       expect(xcdevice.getAvailableIOSDevicesCount, 1);
 
-      expect(iosDevices.deviceNotifier!.items, isEmpty);
+      expect(iosDevices.deviceNotifier.items, isEmpty);
       expect(xcdevice.deviceEventController.hasListener, isTrue);
 
       xcdevice.deviceEventController.add(
         XCDeviceEventNotification(
           XCDeviceEvent.attach,
           XCDeviceEventInterface.usb,
-          'd83d5bc53967baa0ee18626ba87b6254b2ab5418'
+          'd83d5bc53967baa0ee18626ba87b6254b2ab5418',
         ),
       );
       await added.future;
-      expect(iosDevices.deviceNotifier!.items.length, 2);
-      expect(iosDevices.deviceNotifier!.items, contains(device1));
-      expect(iosDevices.deviceNotifier!.items, contains(device2));
+      expect(iosDevices.deviceNotifier.items.length, 2);
+      expect(iosDevices.deviceNotifier.items, contains(device1));
+      expect(iosDevices.deviceNotifier.items, contains(device2));
       expect(iosDevices.eventsReceived, 1);
 
       iosDevices.resetEventCompleter();
@@ -661,13 +731,13 @@ void main() {
         XCDeviceEventNotification(
           XCDeviceEvent.attach,
           XCDeviceEventInterface.wifi,
-          'd83d5bc53967baa0ee18626ba87b6254b2ab5418'
+          'd83d5bc53967baa0ee18626ba87b6254b2ab5418',
         ),
       );
       await iosDevices.receivedEvent.future;
-      expect(iosDevices.deviceNotifier!.items.length, 2);
-      expect(iosDevices.deviceNotifier!.items, contains(device1));
-      expect(iosDevices.deviceNotifier!.items, contains(device2));
+      expect(iosDevices.deviceNotifier.items.length, 2);
+      expect(iosDevices.deviceNotifier.items, contains(device1));
+      expect(iosDevices.deviceNotifier.items, contains(device2));
       expect(iosDevices.eventsReceived, 2);
 
       iosDevices.resetEventCompleter();
@@ -675,33 +745,29 @@ void main() {
         XCDeviceEventNotification(
           XCDeviceEvent.detach,
           XCDeviceEventInterface.usb,
-          'd83d5bc53967baa0ee18626ba87b6254b2ab5418'
+          'd83d5bc53967baa0ee18626ba87b6254b2ab5418',
         ),
       );
       await iosDevices.receivedEvent.future;
-      expect(iosDevices.deviceNotifier!.items.length, 2);
-      expect(iosDevices.deviceNotifier!.items, contains(device1));
-      expect(iosDevices.deviceNotifier!.items, contains(device2));
+      expect(iosDevices.deviceNotifier.items.length, 2);
+      expect(iosDevices.deviceNotifier.items, contains(device1));
+      expect(iosDevices.deviceNotifier.items, contains(device2));
       expect(iosDevices.eventsReceived, 3);
 
       xcdevice.deviceEventController.add(
         XCDeviceEventNotification(
           XCDeviceEvent.detach,
           XCDeviceEventInterface.wifi,
-          'd83d5bc53967baa0ee18626ba87b6254b2ab5418'
+          'd83d5bc53967baa0ee18626ba87b6254b2ab5418',
         ),
       );
       await removed.future;
-      expect(iosDevices.deviceNotifier!.items, <Device>[device2]);
+      expect(iosDevices.deviceNotifier.items, <Device>[device2]);
       expect(iosDevices.eventsReceived, 4);
 
       iosDevices.resetEventCompleter();
       xcdevice.deviceEventController.add(
-        XCDeviceEventNotification(
-          XCDeviceEvent.detach,
-          XCDeviceEventInterface.usb,
-          'bogus'
-        ),
+        XCDeviceEventNotification(XCDeviceEvent.detach, XCDeviceEventInterface.usb, 'bogus'),
       );
       await iosDevices.receivedEvent.future;
       expect(iosDevices.eventsReceived, 5);
@@ -714,7 +780,7 @@ void main() {
     });
 
     testWithoutContext('polling can be restarted if stream is closed', () async {
-      final IOSDevices iosDevices = IOSDevices(
+      final iosDevices = IOSDevices(
         platform: macPlatform,
         xcdevice: xcdevice,
         iosWorkflow: iosWorkflow,
@@ -724,11 +790,13 @@ void main() {
       xcdevice.devices.add(<IOSDevice>[]);
       xcdevice.devices.add(<IOSDevice>[]);
 
-      final StreamController<XCDeviceEventNotification> rescheduledStream = StreamController<XCDeviceEventNotification>();
+      final rescheduledStream = StreamController<XCDeviceEventNotification>();
 
-      unawaited(xcdevice.deviceEventController.done.whenComplete(() {
-        xcdevice.deviceEventController = rescheduledStream;
-      }));
+      unawaited(
+        xcdevice.deviceEventController.done.whenComplete(() {
+          xcdevice.deviceEventController = rescheduledStream;
+        }),
+      );
 
       await iosDevices.startPolling();
       expect(xcdevice.deviceEventController.hasListener, isTrue);
@@ -748,7 +816,7 @@ void main() {
     });
 
     testWithoutContext('dispose cancels polling subscription', () async {
-      final IOSDevices iosDevices = IOSDevices(
+      final iosDevices = IOSDevices(
         platform: macPlatform,
         xcdevice: xcdevice,
         iosWorkflow: iosWorkflow,
@@ -758,32 +826,34 @@ void main() {
       xcdevice.devices.add(<IOSDevice>[]);
 
       await iosDevices.startPolling();
-      expect(iosDevices.deviceNotifier!.items, isEmpty);
+      expect(iosDevices.deviceNotifier.items, isEmpty);
       expect(xcdevice.deviceEventController.hasListener, isTrue);
 
       iosDevices.dispose();
       expect(xcdevice.deviceEventController.hasListener, isFalse);
     });
 
-    final List<Platform> unsupportedPlatforms = <Platform>[linuxPlatform, windowsPlatform];
-    for (final Platform unsupportedPlatform in unsupportedPlatforms) {
-      testWithoutContext('pollingGetDevices throws Unsupported Operation exception on ${unsupportedPlatform.operatingSystem}', () async {
-        final IOSDevices iosDevices = IOSDevices(
-          platform: unsupportedPlatform,
-          xcdevice: xcdevice,
-          iosWorkflow: iosWorkflow,
-          logger: logger,
-        );
-        xcdevice.isInstalled = false;
-        expect(
-          () async { await iosDevices.pollingGetDevices(); },
-          throwsUnsupportedError,
-        );
-      });
+    final unsupportedPlatforms = <Platform>[linuxPlatform, windowsPlatform];
+    for (final unsupportedPlatform in unsupportedPlatforms) {
+      testWithoutContext(
+        'pollingGetDevices throws Unsupported Operation exception on ${unsupportedPlatform.operatingSystem}',
+        () async {
+          final iosDevices = IOSDevices(
+            platform: unsupportedPlatform,
+            xcdevice: xcdevice,
+            iosWorkflow: iosWorkflow,
+            logger: logger,
+          );
+          xcdevice.isInstalled = false;
+          expect(() async {
+            await iosDevices.pollingGetDevices();
+          }, throwsUnsupportedError);
+        },
+      );
     }
 
     testWithoutContext('pollingGetDevices returns attached devices', () async {
-      final IOSDevices iosDevices = IOSDevices(
+      final iosDevices = IOSDevices(
         platform: macPlatform,
         xcdevice: xcdevice,
         iosWorkflow: iosWorkflow,
@@ -810,22 +880,28 @@ void main() {
       logger = BufferLogger.test();
     });
 
-    final List<Platform> unsupportedPlatforms = <Platform>[linuxPlatform, windowsPlatform];
-    for (final Platform unsupportedPlatform in unsupportedPlatforms) {
-      testWithoutContext('throws returns platform diagnostic exception on ${unsupportedPlatform.operatingSystem}', () async {
-        final IOSDevices iosDevices = IOSDevices(
-          platform: unsupportedPlatform,
-          xcdevice: xcdevice,
-          iosWorkflow: iosWorkflow,
-          logger: logger,
-        );
-        xcdevice.isInstalled = false;
-        expect((await iosDevices.getDiagnostics()).first, 'Control of iOS devices or simulators only supported on macOS.');
-      });
+    final unsupportedPlatforms = <Platform>[linuxPlatform, windowsPlatform];
+    for (final unsupportedPlatform in unsupportedPlatforms) {
+      testWithoutContext(
+        'throws returns platform diagnostic exception on ${unsupportedPlatform.operatingSystem}',
+        () async {
+          final iosDevices = IOSDevices(
+            platform: unsupportedPlatform,
+            xcdevice: xcdevice,
+            iosWorkflow: iosWorkflow,
+            logger: logger,
+          );
+          xcdevice.isInstalled = false;
+          expect(
+            (await iosDevices.getDiagnostics()).first,
+            'Control of iOS devices or simulators only supported on macOS.',
+          );
+        },
+      );
     }
 
     testWithoutContext('returns diagnostics', () async {
-      final IOSDevices iosDevices = IOSDevices(
+      final iosDevices = IOSDevices(
         platform: macPlatform,
         xcdevice: xcdevice,
         iosWorkflow: iosWorkflow,
@@ -849,12 +925,13 @@ void main() {
     late IMobileDevice iMobileDevice;
     late IOSWorkflow iosWorkflow;
     late IOSCoreDeviceControl coreDeviceControl;
+    late IOSCoreDeviceLauncher coreDeviceLauncher;
     late XcodeDebug xcodeDebug;
     late IOSDevice notConnected1;
 
     setUp(() {
       xcdevice = FakeXcdevice();
-      final Artifacts artifacts = Artifacts.test();
+      final artifacts = Artifacts.test();
       cache = Cache.test(processManager: FakeProcessManager.any());
       logger = BufferLogger.test();
       iosWorkflow = FakeIOSWorkflow();
@@ -873,6 +950,7 @@ void main() {
         logger: logger,
       );
       coreDeviceControl = FakeIOSCoreDeviceControl();
+      coreDeviceLauncher = FakeIOSCoreDeviceLauncher();
       xcodeDebug = FakeXcodeDebug();
       notConnected1 = IOSDevice(
         '00000001-0000000000000000',
@@ -881,21 +959,24 @@ void main() {
         cpuArchitecture: DarwinArch.arm64,
         iProxy: IProxy.test(logger: logger, processManager: FakeProcessManager.any()),
         iosDeploy: iosDeploy,
+        analytics: FakeAnalytics(),
         iMobileDevice: iMobileDevice,
         coreDeviceControl: coreDeviceControl,
+        coreDeviceLauncher: coreDeviceLauncher,
         xcodeDebug: xcodeDebug,
         logger: logger,
         platform: macPlatform,
         fileSystem: MemoryFileSystem.test(),
         connectionInterface: DeviceConnectionInterface.attached,
         isConnected: false,
+        isPaired: true,
         devModeEnabled: true,
         isCoreDevice: false,
       );
     });
 
     testWithoutContext('wait for device to connect via wifi', () async {
-      final IOSDevices iosDevices = IOSDevices(
+      final iosDevices = IOSDevices(
         platform: macPlatform,
         xcdevice: xcdevice,
         iosWorkflow: iosWorkflow,
@@ -906,20 +987,17 @@ void main() {
       xcdevice.waitForDeviceEvent = XCDeviceEventNotification(
         XCDeviceEvent.attach,
         XCDeviceEventInterface.wifi,
-        '00000001-0000000000000000'
+        '00000001-0000000000000000',
       );
 
-      final Device? device = await iosDevices.waitForDeviceToConnect(
-        notConnected1,
-        logger
-      );
+      final Device? device = await iosDevices.waitForDeviceToConnect(notConnected1, logger);
 
       expect(device?.isConnected, isTrue);
       expect(device?.connectionInterface, DeviceConnectionInterface.wireless);
     });
 
     testWithoutContext('wait for device to connect via usb', () async {
-      final IOSDevices iosDevices = IOSDevices(
+      final iosDevices = IOSDevices(
         platform: macPlatform,
         xcdevice: xcdevice,
         iosWorkflow: iosWorkflow,
@@ -930,20 +1008,17 @@ void main() {
       xcdevice.waitForDeviceEvent = XCDeviceEventNotification(
         XCDeviceEvent.attach,
         XCDeviceEventInterface.usb,
-        '00000001-0000000000000000'
+        '00000001-0000000000000000',
       );
 
-      final Device? device = await iosDevices.waitForDeviceToConnect(
-        notConnected1,
-        logger
-      );
+      final Device? device = await iosDevices.waitForDeviceToConnect(notConnected1, logger);
 
       expect(device?.isConnected, isTrue);
       expect(device?.connectionInterface, DeviceConnectionInterface.attached);
     });
 
     testWithoutContext('wait for device returns null', () async {
-      final IOSDevices iosDevices = IOSDevices(
+      final iosDevices = IOSDevices(
         platform: macPlatform,
         xcdevice: xcdevice,
         iosWorkflow: iosWorkflow,
@@ -953,10 +1028,7 @@ void main() {
 
       xcdevice.waitForDeviceEvent = null;
 
-      final Device? device = await iosDevices.waitForDeviceToConnect(
-        notConnected1,
-        logger
-      );
+      final Device? device = await iosDevices.waitForDeviceToConnect(notConnected1, logger);
 
       expect(device, isNull);
     });
@@ -971,10 +1043,15 @@ class FakeIOSApp extends Fake implements IOSApp {
 }
 
 class TestIOSDevices extends IOSDevices {
-  TestIOSDevices({required super.platform, required super.xcdevice, required super.iosWorkflow, required super.logger,});
+  TestIOSDevices({
+    required super.platform,
+    required super.xcdevice,
+    required super.iosWorkflow,
+    required super.logger,
+  });
 
-  Completer<void> receivedEvent = Completer<void>();
-  int eventsReceived = 0;
+  var receivedEvent = Completer<void>();
+  var eventsReceived = 0;
 
   void resetEventCompleter() {
     receivedEvent = Completer<void>();
@@ -991,18 +1068,18 @@ class TestIOSDevices extends IOSDevices {
   }
 }
 
-class FakeIOSWorkflow extends Fake implements IOSWorkflow { }
+class FakeIOSWorkflow extends Fake implements IOSWorkflow {}
 
 class FakeXcdevice extends Fake implements XCDevice {
-  int getAvailableIOSDevicesCount = 0;
-  final List<List<IOSDevice>> devices = <List<IOSDevice>>[];
-  final List<String> diagnostics = <String>[];
-  StreamController<XCDeviceEventNotification> deviceEventController = StreamController<XCDeviceEventNotification>();
+  var getAvailableIOSDevicesCount = 0;
+  final devices = <List<IOSDevice>>[];
+  final diagnostics = <String>[];
+  var deviceEventController = StreamController<XCDeviceEventNotification>();
 
   XCDeviceEventNotification? waitForDeviceEvent;
 
   @override
-  bool isInstalled = true;
+  var isInstalled = true;
 
   @override
   Future<List<String>> getDiagnostics() async {
@@ -1023,7 +1100,11 @@ class FakeXcdevice extends Fake implements XCDevice {
   Future<XCDeviceEventNotification?> waitForDeviceToConnect(String deviceId) async {
     final XCDeviceEventNotification? waitEvent = waitForDeviceEvent;
     if (waitEvent != null) {
-      return XCDeviceEventNotification(waitEvent.eventType, waitEvent.eventInterface, waitEvent.deviceIdentifier);
+      return XCDeviceEventNotification(
+        waitEvent.eventType,
+        waitEvent.eventInterface,
+        waitEvent.deviceIdentifier,
+      );
     } else {
       return null;
     }
@@ -1031,7 +1112,7 @@ class FakeXcdevice extends Fake implements XCDevice {
 }
 
 class FakeProcess extends Fake implements Process {
-  bool killed = false;
+  var killed = false;
 
   @override
   bool kill([io.ProcessSignal signal = io.ProcessSignal.sigterm]) {
@@ -1046,3 +1127,7 @@ class FakeXcodeDebug extends Fake implements XcodeDebug {
 }
 
 class FakeIOSCoreDeviceControl extends Fake implements IOSCoreDeviceControl {}
+
+class FakeIOSCoreDeviceLauncher extends Fake implements IOSCoreDeviceLauncher {}
+
+class FakeAnalytics extends Fake implements Analytics {}

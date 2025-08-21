@@ -2,6 +2,10 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+/// @docImport 'constants.dart';
+/// @docImport 'radio.dart';
+library;
+
 import 'dart:ui' show lerpDouble;
 
 import 'package:flutter/foundation.dart';
@@ -45,28 +49,23 @@ class RadioThemeData with Diagnosticable {
     this.splashRadius,
     this.materialTapTargetSize,
     this.visualDensity,
+    this.backgroundColor,
   });
 
-  /// {@macro flutter.material.radio.mouseCursor}
+  /// {@macro flutter.widget.RawRadio.mouseCursor}
   ///
   /// If specified, overrides the default value of [Radio.mouseCursor]. The
-  /// default value is [MaterialStateMouseCursor.clickable].
+  /// default value is [WidgetStateMouseCursor.clickable].
   final MaterialStateProperty<MouseCursor?>? mouseCursor;
 
   /// {@macro flutter.material.radio.fillColor}
   ///
-  /// If specified, overrides the default value of [Radio.fillColor]. The
-  /// default value is the value of [ThemeData.disabledColor] in the disabled
-  /// state, [ThemeData.toggleableActiveColor] in the selected state, and
-  /// [ThemeData.unselectedWidgetColor] in the default state.
+  /// If specified, overrides the default value of [Radio.fillColor].
   final MaterialStateProperty<Color?>? fillColor;
 
   /// {@macro flutter.material.radio.overlayColor}
   ///
-  /// If specified, overrides the default value of [Radio.overlayColor]. The
-  /// default value is [ThemeData.toggleableActiveColor] with alpha
-  /// [kRadialReactionAlpha], [ThemeData.focusColor] and [ThemeData.hoverColor]
-  /// in the pressed, focused, and hovered state.
+  /// If specified, overrides the default value of [Radio.overlayColor].
   final MaterialStateProperty<Color?>? overlayColor;
 
   /// {@macro flutter.material.radio.splashRadius}
@@ -88,6 +87,9 @@ class RadioThemeData with Diagnosticable {
   /// default value is the value of [ThemeData.visualDensity].
   final VisualDensity? visualDensity;
 
+  /// {@macro flutter.material.Radio.backgroundColor}
+  final WidgetStateProperty<Color?>? backgroundColor;
+
   /// Creates a copy of this object but with the given fields replaced with the
   /// new values.
   RadioThemeData copyWith({
@@ -97,6 +99,7 @@ class RadioThemeData with Diagnosticable {
     double? splashRadius,
     MaterialTapTargetSize? materialTapTargetSize,
     VisualDensity? visualDensity,
+    WidgetStateProperty<Color?>? backgroundColor,
   }) {
     return RadioThemeData(
       mouseCursor: mouseCursor ?? this.mouseCursor,
@@ -105,6 +108,7 @@ class RadioThemeData with Diagnosticable {
       splashRadius: splashRadius ?? this.splashRadius,
       materialTapTargetSize: materialTapTargetSize ?? this.materialTapTargetSize,
       visualDensity: visualDensity ?? this.visualDensity,
+      backgroundColor: backgroundColor ?? this.backgroundColor,
     );
   }
 
@@ -119,9 +123,20 @@ class RadioThemeData with Diagnosticable {
       mouseCursor: t < 0.5 ? a?.mouseCursor : b?.mouseCursor,
       fillColor: MaterialStateProperty.lerp<Color?>(a?.fillColor, b?.fillColor, t, Color.lerp),
       materialTapTargetSize: t < 0.5 ? a?.materialTapTargetSize : b?.materialTapTargetSize,
-      overlayColor: MaterialStateProperty.lerp<Color?>(a?.overlayColor, b?.overlayColor, t, Color.lerp),
+      overlayColor: MaterialStateProperty.lerp<Color?>(
+        a?.overlayColor,
+        b?.overlayColor,
+        t,
+        Color.lerp,
+      ),
       splashRadius: lerpDouble(a?.splashRadius, b?.splashRadius, t),
       visualDensity: t < 0.5 ? a?.visualDensity : b?.visualDensity,
+      backgroundColor: WidgetStateProperty.lerp<Color?>(
+        a?.backgroundColor,
+        b?.backgroundColor,
+        t,
+        Color.lerp,
+      ),
     );
   }
 
@@ -133,6 +148,7 @@ class RadioThemeData with Diagnosticable {
     splashRadius,
     materialTapTargetSize,
     visualDensity,
+    backgroundColor,
   );
 
   @override
@@ -143,24 +159,58 @@ class RadioThemeData with Diagnosticable {
     if (other.runtimeType != runtimeType) {
       return false;
     }
-    return other is RadioThemeData
-      && other.mouseCursor == mouseCursor
-      && other.fillColor == fillColor
-      && other.overlayColor == overlayColor
-      && other.splashRadius == splashRadius
-      && other.materialTapTargetSize == materialTapTargetSize
-      && other.visualDensity == visualDensity;
+    return other is RadioThemeData &&
+        other.mouseCursor == mouseCursor &&
+        other.fillColor == fillColor &&
+        other.overlayColor == overlayColor &&
+        other.splashRadius == splashRadius &&
+        other.materialTapTargetSize == materialTapTargetSize &&
+        other.visualDensity == visualDensity &&
+        other.backgroundColor == backgroundColor;
   }
 
   @override
   void debugFillProperties(DiagnosticPropertiesBuilder properties) {
     super.debugFillProperties(properties);
-    properties.add(DiagnosticsProperty<MaterialStateProperty<MouseCursor?>>('mouseCursor', mouseCursor, defaultValue: null));
-    properties.add(DiagnosticsProperty<MaterialStateProperty<Color?>>('fillColor', fillColor, defaultValue: null));
-    properties.add(DiagnosticsProperty<MaterialStateProperty<Color?>>('overlayColor', overlayColor, defaultValue: null));
+    properties.add(
+      DiagnosticsProperty<MaterialStateProperty<MouseCursor?>>(
+        'mouseCursor',
+        mouseCursor,
+        defaultValue: null,
+      ),
+    );
+    properties.add(
+      DiagnosticsProperty<MaterialStateProperty<Color?>>(
+        'fillColor',
+        fillColor,
+        defaultValue: null,
+      ),
+    );
+    properties.add(
+      DiagnosticsProperty<MaterialStateProperty<Color?>>(
+        'overlayColor',
+        overlayColor,
+        defaultValue: null,
+      ),
+    );
     properties.add(DoubleProperty('splashRadius', splashRadius, defaultValue: null));
-    properties.add(DiagnosticsProperty<MaterialTapTargetSize>('materialTapTargetSize', materialTapTargetSize, defaultValue: null));
-    properties.add(DiagnosticsProperty<VisualDensity>('visualDensity', visualDensity, defaultValue: null));
+    properties.add(
+      DiagnosticsProperty<MaterialTapTargetSize>(
+        'materialTapTargetSize',
+        materialTapTargetSize,
+        defaultValue: null,
+      ),
+    );
+    properties.add(
+      DiagnosticsProperty<VisualDensity>('visualDensity', visualDensity, defaultValue: null),
+    );
+    properties.add(
+      DiagnosticsProperty<WidgetStateProperty<Color?>>(
+        'backgroundColor',
+        backgroundColor,
+        defaultValue: null,
+      ),
+    );
   }
 }
 
@@ -179,11 +229,7 @@ class RadioThemeData with Diagnosticable {
 ///    theme.
 class RadioTheme extends InheritedWidget {
   /// Constructs a radio theme that configures all descendant [Radio] widgets.
-  const RadioTheme({
-    super.key,
-    required this.data,
-    required super.child,
-  });
+  const RadioTheme({super.key, required this.data, required super.child});
 
   /// The properties used for all descendant [Radio] widgets.
   final RadioThemeData data;

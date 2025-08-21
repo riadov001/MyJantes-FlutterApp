@@ -6,39 +6,41 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:leak_tracker_flutter_testing/leak_tracker_flutter_testing.dart';
 
 import 'semantics_tester.dart';
 
 void main() {
-  testWidgetsWithLeakTracking('SemanticsNode ids are stable', (WidgetTester tester) async {
+  testWidgets('SemanticsNode ids are stable', (WidgetTester tester) async {
     // Regression test for b/151732341.
     final SemanticsTester semantics = SemanticsTester(tester);
-    await tester.pumpWidget(Directionality(
-    textDirection: TextDirection.ltr,
-      child: Text.rich(
-        TextSpan(
-          text: 'Hallo ',
-          recognizer: TapGestureRecognizer()..onTap = () {},
-          children: <TextSpan>[
-            TextSpan(
-              text: 'Welt ',
-              recognizer: TapGestureRecognizer()..onTap = () {},
-            ),
-            TextSpan(
-              text: '!!!',
-              recognizer: TapGestureRecognizer()..onTap = () {},
-            ),
-          ],
+    final TapGestureRecognizer recognizer1 = TapGestureRecognizer();
+    addTearDown(recognizer1.dispose);
+    final TapGestureRecognizer recognizer2 = TapGestureRecognizer();
+    addTearDown(recognizer2.dispose);
+    final TapGestureRecognizer recognizer3 = TapGestureRecognizer();
+    addTearDown(recognizer3.dispose);
+
+    await tester.pumpWidget(
+      Directionality(
+        textDirection: TextDirection.ltr,
+        child: Text.rich(
+          TextSpan(
+            text: 'Hallo ',
+            recognizer: recognizer1..onTap = () {},
+            children: <TextSpan>[
+              TextSpan(text: 'Welt ', recognizer: recognizer2..onTap = () {}),
+              TextSpan(text: '!!!', recognizer: recognizer3..onTap = () {}),
+            ],
+          ),
         ),
       ),
-    ));
+    );
     expect(find.text('Hallo Welt !!!'), findsOneWidget);
     final SemanticsNode node = tester.getSemantics(find.text('Hallo Welt !!!'));
     final Map<String, int> labelToNodeId = <String, int>{};
     node.visitChildren((SemanticsNode node) {
       labelToNodeId[node.label] = node.id;
-       return true;
+      return true;
     });
     expect(node.id, 1);
     expect(labelToNodeId['Hallo '], 2);
@@ -64,22 +66,24 @@ void main() {
     expect(labelToNodeIdAfterRebuild['!!!'], labelToNodeId['!!!']);
     expect(labelToNodeIdAfterRebuild.length, 3);
 
+    final TapGestureRecognizer recognizer4 = TapGestureRecognizer();
+    addTearDown(recognizer4.dispose);
+    final TapGestureRecognizer recognizer5 = TapGestureRecognizer();
+    addTearDown(recognizer5.dispose);
+
     // Remove one node.
-    await tester.pumpWidget(Directionality(
-      textDirection: TextDirection.ltr,
-      child: Text.rich(
-        TextSpan(
-          text: 'Hallo ',
-          recognizer: TapGestureRecognizer()..onTap = () {},
-          children: <TextSpan>[
-            TextSpan(
-              text: 'Welt ',
-              recognizer: TapGestureRecognizer()..onTap = () {},
-            ),
-          ],
+    await tester.pumpWidget(
+      Directionality(
+        textDirection: TextDirection.ltr,
+        child: Text.rich(
+          TextSpan(
+            text: 'Hallo ',
+            recognizer: recognizer4..onTap = () {},
+            children: <TextSpan>[TextSpan(text: 'Welt ', recognizer: recognizer5..onTap = () {})],
+          ),
         ),
       ),
-    ));
+    );
 
     final SemanticsNode nodeAfterRemoval = tester.getSemantics(find.text('Hallo Welt '));
     final Map<String, int> labelToNodeIdAfterRemoval = <String, int>{};
@@ -94,25 +98,28 @@ void main() {
     expect(labelToNodeIdAfterRemoval['Welt '], labelToNodeId['Welt ']);
     expect(labelToNodeIdAfterRemoval.length, 2);
 
-    await tester.pumpWidget(Directionality(
-      textDirection: TextDirection.ltr,
-      child: Text.rich(
-        TextSpan(
-          text: 'Hallo ',
-          recognizer: TapGestureRecognizer()..onTap = () {},
-          children: <TextSpan>[
-            TextSpan(
-              text: 'Welt ',
-              recognizer: TapGestureRecognizer()..onTap = () {},
-            ),
-            TextSpan(
-              text: '!!!',
-              recognizer: TapGestureRecognizer()..onTap = () {},
-            ),
-          ],
+    final TapGestureRecognizer recognizer6 = TapGestureRecognizer();
+    addTearDown(recognizer6.dispose);
+    final TapGestureRecognizer recognizer7 = TapGestureRecognizer();
+    addTearDown(recognizer7.dispose);
+    final TapGestureRecognizer recognizer8 = TapGestureRecognizer();
+    addTearDown(recognizer8.dispose);
+
+    await tester.pumpWidget(
+      Directionality(
+        textDirection: TextDirection.ltr,
+        child: Text.rich(
+          TextSpan(
+            text: 'Hallo ',
+            recognizer: recognizer6..onTap = () {},
+            children: <TextSpan>[
+              TextSpan(text: 'Welt ', recognizer: recognizer7..onTap = () {}),
+              TextSpan(text: '!!!', recognizer: recognizer8..onTap = () {}),
+            ],
+          ),
         ),
       ),
-    ));
+    );
     expect(find.text('Hallo Welt !!!'), findsOneWidget);
     final SemanticsNode nodeAfterAddition = tester.getSemantics(find.text('Hallo Welt !!!'));
     final Map<String, int> labelToNodeIdAfterAddition = <String, int>{};
@@ -130,5 +137,90 @@ void main() {
     expect(labelToNodeIdAfterAddition.length, 3);
 
     semantics.dispose();
+  });
+
+  testWidgets('SemanticsIdentifier creates a functional SemanticsNode', (
+    WidgetTester tester,
+  ) async {
+    await tester.pumpWidget(
+      const Directionality(
+        textDirection: TextDirection.ltr,
+        child: Text.rich(
+          TextSpan(
+            text: 'Hello, ',
+            children: <TextSpan>[
+              TextSpan(text: '1 new '),
+              TextSpan(text: 'semantics node ', semanticsIdentifier: 'new_semantics_node'),
+              TextSpan(text: 'has been '),
+              TextSpan(text: 'created.'),
+            ],
+          ),
+        ),
+      ),
+    );
+    expect(find.text('Hello, 1 new semantics node has been created.'), findsOneWidget);
+    final SemanticsNode node = tester.getSemantics(
+      find.text('Hello, 1 new semantics node has been created.'),
+    );
+    final Map<String, String> labelToNodeId = <String, String>{};
+    node.visitChildren((SemanticsNode node) {
+      labelToNodeId[node.label] = node.identifier;
+      return true;
+    });
+    expect(node.id, 1);
+    expect(labelToNodeId['Hello, 1 new '], '');
+    expect(labelToNodeId['semantics node '], 'new_semantics_node');
+    expect(labelToNodeId['has been created.'], '');
+    expect(labelToNodeId.length, 3);
+  });
+
+  testWidgets('GIVEN a Text widget with a locale '
+      'WHEN semantics are built '
+      'THEN the SemanticsNode contains the correct language tag', (WidgetTester tester) async {
+    const Locale locale = Locale('de', 'DE');
+
+    await tester.pumpWidget(
+      const Directionality(
+        textDirection: TextDirection.ltr,
+        child: Text('Flutter 2050', locale: locale),
+      ),
+    );
+
+    final SemanticsNode node = tester.getSemantics(find.byType(Directionality));
+    final LocaleStringAttribute localeStringAttribute =
+        node.attributedLabel.attributes[0] as LocaleStringAttribute;
+
+    expect(node.label, 'Flutter 2050');
+    expect(localeStringAttribute.locale.toLanguageTag(), 'de-DE');
+  });
+
+  testWidgets('GIVEN a Text with a locale is within a SelectionContainer '
+      'WHEN semantics are built '
+      'THEN the SemanticsNode contains the correct language tag', (WidgetTester tester) async {
+    const Locale locale = Locale('de', 'DE');
+    const String text = 'Flutter 2050';
+    await tester.pumpWidget(
+      const MaterialApp(
+        home: SelectionArea(child: Text(text, locale: locale)),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    final SemanticsNode root = tester.binding.pipelineOwner.semanticsOwner!.rootSemanticsNode!;
+    final List<SemanticsNode> queue = <SemanticsNode>[root];
+    SemanticsNode? targetNode;
+    while (queue.isNotEmpty) {
+      final SemanticsNode node = queue.removeAt(0);
+      if (node.label == text) {
+        targetNode = node;
+        break;
+      }
+      queue.addAll(node.debugListChildrenInOrder(DebugSemanticsDumpOrder.traversalOrder));
+    }
+    final LocaleStringAttribute localeStringAttribute =
+        targetNode!.attributedLabel.attributes[0] as LocaleStringAttribute;
+
+    expect(targetNode.label, text);
+    expect(localeStringAttribute.locale.toLanguageTag(), 'de-DE');
   });
 }
