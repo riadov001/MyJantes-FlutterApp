@@ -1096,42 +1096,10 @@ class MyJantesServer(http.server.BaseHTTPRequestHandler):
 </body>
 </html>"""
         
-        .btn:hover {
-            transform: translateY(-3px);
-            box-shadow: var(--shadow-lg);
-        }
-        
-        .btn-secondary {
-            background: transparent;
-            color: var(--white);
-            border: 2px solid var(--white);
-        }
-        
-        .btn-secondary:hover {
-            background: var(--white);
-            color: var(--primary-color);
-        }
-        
-        /* Container */
-        .container {
-            max-width: 1400px;
-            margin: 0 auto;
-            padding: 0 2rem;
-        }
-        
-        .page {
-            display: none;
-            min-height: 70vh;
-        }
-        
-        .page.active {
-            display: block;
-        }
-        
-        /* Services Grid */
-        .services-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        self.wfile.write(html_content.encode('utf-8'))
+
+
+def main():
             gap: 2rem;
             padding: 4rem 0;
         }
