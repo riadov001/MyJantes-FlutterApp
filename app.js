@@ -12,12 +12,8 @@ const pool = new Pool({
   connectionString: process.env.DATABASE_URL
 });
 
-// Session configuration
+// Session configuration (temporary memory store for testing)
 app.use(session({
-  store: new pgSession({
-    pool: pool,
-    tableName: 'sessions'
-  }),
   secret: process.env.SESSION_SECRET || 'dev-secret-key',
   resave: false,
   saveUninitialized: false,
