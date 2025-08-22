@@ -3,9 +3,12 @@ import {
   devis,
   factures,
   reservations,
+  notifications,
+  consentLogs,
   type User,
   type UpsertUser,
   type InsertUser,
+  type UpdateUser,
   type Devis,
   type InsertDevis,
   type UpdateDevis,
@@ -15,6 +18,10 @@ import {
   type Reservation,
   type InsertReservation,
   type UpdateReservation,
+  type Notification,
+  type InsertNotification,
+  type ConsentLog,
+  type InsertConsentLog,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, and, or, ilike } from "drizzle-orm";
@@ -23,8 +30,12 @@ export interface IStorage {
   // User operations
   getUser(id: string): Promise<User | undefined>;
   getUserByEmail(email: string): Promise<User | undefined>;
+  getAllUsers(): Promise<User[]>;
   upsertUser(user: UpsertUser): Promise<User>;
   createUser(user: InsertUser): Promise<User>;
+  updateUser(id: string, user: UpdateUser): Promise<User>;
+  deleteUser(id: string): Promise<void>;
+  searchUsers(query: string): Promise<User[]>;
   
   // Devis operations
   getDevis(id: string): Promise<Devis | undefined>;
@@ -52,6 +63,18 @@ export interface IStorage {
   updateReservation(id: string, reservation: UpdateReservation): Promise<Reservation>;
   deleteReservation(id: string): Promise<void>;
   searchReservations(query: string): Promise<Reservation[]>;
+  
+  // Notifications operations
+  getNotification(id: string): Promise<Notification | undefined>;
+  getNotificationsByUser(userId: string): Promise<Notification[]>;
+  getAllNotifications(): Promise<Notification[]>;
+  createNotification(notification: InsertNotification): Promise<Notification>;
+  updateNotificationStatus(id: string, status: string): Promise<Notification>;
+  deleteNotification(id: string): Promise<void>;
+  
+  // Consent logs operations
+  createConsentLog(consentLog: InsertConsentLog): Promise<ConsentLog>;
+  getConsentLogsByUser(userId: string): Promise<ConsentLog[]>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -81,12 +104,47 @@ export class DatabaseStorage implements IStorage {
     return user;
   }
 
+  async getAllUsers(): Promise<User[]> {
+    return await db
+      .select()
+      .from(users)
+      .orderBy(desc(users.createdAt));
+  }
+
   async createUser(userData: InsertUser): Promise<User> {
     const [user] = await db
       .insert(users)
       .values(userData)
       .returning();
     return user;
+  }
+
+  async updateUser(id: string, userData: UpdateUser): Promise<User> {
+    const [user] = await db
+      .update(users)
+      .set({ ...userData, updatedAt: new Date() })
+      .where(eq(users.id, id))
+      .returning();
+    return user;
+  }
+
+  async deleteUser(id: string): Promise<void> {
+    await db.delete(users).where(eq(users.id, id));
+  }
+
+  async searchUsers(query: string): Promise<User[]> {
+    return await db
+      .select()
+      .from(users)
+      .where(
+        or(
+          ilike(users.firstName, `%${query}%`),
+          ilike(users.lastName, `%${query}%`),
+          ilike(users.email, `%${query}%`),
+          ilike(users.phone, `%${query}%`)
+        )
+      )
+      .orderBy(desc(users.createdAt));
   }
 
   // Devis operations
@@ -257,6 +315,65 @@ export class DatabaseStorage implements IStorage {
         )
       )
       .orderBy(desc(reservations.createdAt));
+  }
+
+  // Notifications operations
+  async getNotification(id: string): Promise<Notification | undefined> {
+    const [notification] = await db.select().from(notifications).where(eq(notifications.id, id));
+    return notification;
+  }
+
+  async getNotificationsByUser(userId: string): Promise<Notification[]> {
+    return await db
+      .select()
+      .from(notifications)
+      .where(eq(notifications.userId, userId))
+      .orderBy(desc(notifications.createdAt));
+  }
+
+  async getAllNotifications(): Promise<Notification[]> {
+    return await db
+      .select()
+      .from(notifications)
+      .orderBy(desc(notifications.createdAt));
+  }
+
+  async createNotification(notificationData: InsertNotification): Promise<Notification> {
+    const [newNotification] = await db
+      .insert(notifications)
+      .values(notificationData)
+      .returning();
+    return newNotification;
+  }
+
+  async updateNotificationStatus(id: string, status: string): Promise<Notification> {
+    const [updatedNotification] = await db
+      .update(notifications)
+      .set({ status, sentAt: status === 'sent' ? new Date() : undefined })
+      .where(eq(notifications.id, id))
+      .returning();
+    return updatedNotification;
+  }
+
+  async deleteNotification(id: string): Promise<void> {
+    await db.delete(notifications).where(eq(notifications.id, id));
+  }
+
+  // Consent logs operations
+  async createConsentLog(consentLogData: InsertConsentLog): Promise<ConsentLog> {
+    const [newConsentLog] = await db
+      .insert(consentLogs)
+      .values(consentLogData)
+      .returning();
+    return newConsentLog;
+  }
+
+  async getConsentLogsByUser(userId: string): Promise<ConsentLog[]> {
+    return await db
+      .select()
+      .from(consentLogs)
+      .where(eq(consentLogs.userId, userId))
+      .orderBy(desc(consentLogs.createdAt));
   }
 }
 
