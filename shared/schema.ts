@@ -36,6 +36,7 @@ export const sessions = pgTable(
 export const users = pgTable("users", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   email: varchar("email").unique().notNull(),
+  password: varchar("password"), // For password-based authentication
   firstName: varchar("first_name"),
   lastName: varchar("last_name"),
   phone: varchar("phone"),
@@ -44,6 +45,12 @@ export const users = pgTable("users", {
   postalCode: varchar("postal_code"),
   profileImageUrl: varchar("profile_image_url"),
   role: userRoleEnum("role").default('client').notNull(),
+  emailVerified: boolean("email_verified").default(false),
+  phoneVerified: boolean("phone_verified").default(false),
+  smsConsent: boolean("sms_consent").default(false),
+  emailConsent: boolean("email_consent").default(false),
+  dataProcessingConsent: boolean("data_processing_consent").default(false),
+  lastLoginAt: timestamp("last_login_at"),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
