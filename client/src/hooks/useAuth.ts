@@ -22,7 +22,7 @@ export function useAuth() {
   const [isLoading, setIsLoading] = useState<boolean>(true);
 
   const { data: user, error, refetch } = useQuery<User>({
-    queryKey: ['/api/user'],
+    queryKey: ['/api/auth/user'],
     retry: false,
     refetchOnWindowFocus: false,
   });

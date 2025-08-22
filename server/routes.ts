@@ -14,7 +14,7 @@ import {
   updateFactureSchema,
   updateReservationSchema,
   updateUserSchema,
-} from "@shared/schema";
+} from "../shared/schema";
 import { notificationService } from "./notificationService";
 
 export async function registerRoutes(app: Express): Promise<Server> {
