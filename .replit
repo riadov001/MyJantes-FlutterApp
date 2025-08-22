@@ -17,4 +17,4 @@ channel = "stable-25_05"
 
 [deployment]
 deploymentTarget = "cloudrun"
-run = ["sh", "-c", "python3 main.py"]
+run = ["sh", "-c", "node app.js"]
