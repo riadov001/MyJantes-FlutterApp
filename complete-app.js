@@ -54,8 +54,8 @@ app.get('/health', (req, res) => {
   res.send('OK');
 });
 
-// CSS commun responsive
-const responsiveCSS = `
+// CSS commun pour responsive design
+const commonCSS = `
 <style>
 * {
     margin: 0;
@@ -67,9 +67,9 @@ body {
     font-family: 'Arial', sans-serif;
     background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
     min-height: 100vh;
-    color: #333;
 }
 
+/* Navigation responsive */
 .navbar {
     background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
     color: white;
@@ -124,6 +124,7 @@ body {
     cursor: pointer;
 }
 
+/* Menu mobile */
 @media (max-width: 768px) {
     .nav-menu {
         display: none;
@@ -153,6 +154,7 @@ body {
     }
 }
 
+/* Conteneurs responsive */
 .container {
     max-width: 1200px;
     margin: 2rem auto;
@@ -178,6 +180,7 @@ body {
     padding: 2rem;
 }
 
+/* Formulaires responsive */
 .form-group {
     margin-bottom: 1.5rem;
 }
@@ -191,14 +194,6 @@ body {
 @media (max-width: 768px) {
     .form-row {
         grid-template-columns: 1fr;
-    }
-    
-    .card-body {
-        padding: 1rem;
-    }
-    
-    .container {
-        padding: 0 0.5rem;
     }
 }
 
@@ -245,6 +240,11 @@ button.secondary {
     background: #6c757d;
 }
 
+button.secondary:hover {
+    background: #5a6268;
+}
+
+/* Messages */
 .success {
     background: #d4edda;
     color: #155724;
@@ -263,6 +263,7 @@ button.secondary {
     border-left: 4px solid #dc3545;
 }
 
+/* Grille responsive */
 .grid {
     display: grid;
     gap: 2rem;
@@ -276,6 +277,7 @@ button.secondary {
     grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
 }
 
+/* Tables responsive */
 .table-container {
     overflow-x: auto;
     margin: 1rem 0;
@@ -298,6 +300,7 @@ th {
     font-weight: bold;
 }
 
+/* Status badges */
 .status {
     padding: 0.25rem 0.5rem;
     border-radius: 20px;
@@ -316,18 +319,33 @@ th {
 .status-envoyee { background: #007bff; }
 .status-payee { background: #28a745; }
 
-.fade-in {
-    animation: fadeIn 0.5s ease;
-}
-
+/* Animations */
 @keyframes fadeIn {
     from { opacity: 0; transform: translateY(20px); }
     to { opacity: 1; transform: translateY(0); }
 }
 
+.fade-in {
+    animation: fadeIn 0.5s ease;
+}
+
+/* Utilitaires responsive */
 .text-center { text-align: center; }
+.text-right { text-align: right; }
+.mb-1 { margin-bottom: 1rem; }
+.mb-2 { margin-bottom: 2rem; }
+.p-1 { padding: 1rem; }
+.p-2 { padding: 2rem; }
 
 @media (max-width: 480px) {
+    .container {
+        padding: 0 0.5rem;
+    }
+    
+    .card-body {
+        padding: 1rem;
+    }
+    
     button {
         width: 100%;
         margin-bottom: 0.5rem;
@@ -341,6 +359,7 @@ function toggleMobileMenu() {
     menu.classList.toggle('active');
 }
 
+// Auto-close mobile menu when clicking outside
 document.addEventListener('click', function(e) {
     const menu = document.querySelector('.nav-menu');
     const toggle = document.querySelector('.mobile-menu-toggle');
@@ -365,7 +384,7 @@ app.get('/', (req, res) => {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>MY JANTES - Rénovation de Jantes Aluminium</title>
-    ${responsiveCSS}
+    ${commonCSS}
 </head>
 <body>
     <nav class="navbar">
@@ -392,7 +411,7 @@ app.get('/', (req, res) => {
         ${isAuthenticated ? `
             <div class="card fade-in">
                 <div class="card-header">
-                    <h1>Bienvenue ${userName}</h1>
+                    <h1>Bienvenue ${userName} !</h1>
                     <p>Votre espace personnel MY JANTES</p>
                 </div>
                 <div class="card-body">
@@ -428,36 +447,37 @@ app.get('/', (req, res) => {
                 </div>
             </div>
         ` : `
+            <!-- Hero Section -->
             <div class="card fade-in">
                 <div class="card-header">
-                    <h1>MY JANTES</h1>
+                    <h1>🏆 MY JANTES</h1>
                     <h2>Spécialiste Rénovation Jantes Aluminium</h2>
                     <p>Redonnez vie à vos jantes avec notre expertise professionnelle</p>
                 </div>
                 <div class="card-body">
                     <div class="grid grid-2">
                         <div>
-                            <h3>Nos Services</h3>
+                            <h3>🎯 Nos Services</h3>
                             <ul style="list-style: none; padding: 0;">
                                 <li style="margin: 0.5rem 0; padding: 0.5rem; background: #f8f9fa; border-radius: 5px;">
-                                    <strong>Rénovation Standard</strong> - 70€/jante
+                                    ✨ <strong>Rénovation Standard</strong> - 70€/jante
                                 </li>
                                 <li style="margin: 0.5rem 0; padding: 0.5rem; background: #f8f9fa; border-radius: 5px;">
-                                    <strong>Rénovation Premium</strong> - 90€/jante
+                                    💎 <strong>Rénovation Premium</strong> - 90€/jante
                                 </li>
                                 <li style="margin: 0.5rem 0; padding: 0.5rem; background: #f8f9fa; border-radius: 5px;">
-                                    <strong>Personnalisation</strong> - 120€/jante
+                                    🎨 <strong>Personnalisation</strong> - 120€/jante
                                 </li>
                                 <li style="margin: 0.5rem 0; padding: 0.5rem; background: #f8f9fa; border-radius: 5px;">
-                                    <strong>Dévoilage</strong> - 40€/jante
+                                    🔧 <strong>Dévoilage</strong> - 40€/jante
                                 </li>
                                 <li style="margin: 0.5rem 0; padding: 0.5rem; background: #f8f9fa; border-radius: 5px;">
-                                    <strong>Décapage</strong> - 60€/jante
+                                    🧹 <strong>Décapage</strong> - 60€/jante
                                 </li>
                             </ul>
                         </div>
                         <div>
-                            <h3>Nos Résultats</h3>
+                            <h3>📊 Nos Résultats</h3>
                             <div class="grid grid-2">
                                 <div class="text-center">
                                     <div style="font-size: 2rem; font-weight: bold; color: #dc2626;">500+</div>
@@ -471,7 +491,7 @@ app.get('/', (req, res) => {
                             <div class="text-center" style="margin-top: 2rem;">
                                 <a href="/register" style="text-decoration: none;">
                                     <button style="font-size: 1.2rem; padding: 1rem 2rem;">
-                                        Commencer maintenant
+                                        🚀 Commencer maintenant
                                     </button>
                                 </a>
                             </div>
@@ -506,7 +526,7 @@ app.get('/register', (req, res) => {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Inscription - MY JANTES</title>
-    ${responsiveCSS}
+    ${commonCSS}
 </head>
 <body>
     <nav class="navbar">
@@ -644,7 +664,7 @@ app.get('/login', (req, res) => {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Connexion - MY JANTES</title>
-    ${responsiveCSS}
+    ${commonCSS}
 </head>
 <body>
     <nav class="navbar">
@@ -827,7 +847,7 @@ app.get('/dashboard', requireAuth, async (req, res) => {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Mon Espace - MY JANTES</title>
-    ${responsiveCSS}
+    ${commonCSS}
 </head>
 <body>
     <nav class="navbar">
@@ -851,9 +871,10 @@ app.get('/dashboard', requireAuth, async (req, res) => {
             </div>
         </div>
         
+        <!-- Mes Devis -->
         <div class="card fade-in">
             <div class="card-body">
-                <h2>Mes Devis</h2>
+                <h2>📋 Mes Devis</h2>
                 ${devisResult.rows.length > 0 ? `
                     <div class="table-container">
                         <table>
@@ -877,9 +898,10 @@ app.get('/dashboard', requireAuth, async (req, res) => {
             </div>
         </div>
         
+        <!-- Mes Réservations -->
         <div class="card fade-in">
             <div class="card-body">
-                <h2>Mes Réservations</h2>
+                <h2>📅 Mes Réservations</h2>
                 ${reservationsResult.rows.length > 0 ? `
                     <div class="table-container">
                         <table>
@@ -902,9 +924,10 @@ app.get('/dashboard', requireAuth, async (req, res) => {
             </div>
         </div>
         
+        <!-- Mes Factures -->
         <div class="card fade-in">
             <div class="card-body">
-                <h2>Mes Factures</h2>
+                <h2>💰 Mes Factures</h2>
                 ${facturesResult.rows.length > 0 ? `
                     <div class="table-container">
                         <table>
@@ -960,7 +983,7 @@ app.get('/admin', requireAdmin, async (req, res) => {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Dashboard - MY JANTES</title>
-    ${responsiveCSS}
+    ${commonCSS}
     <style>
         .stats-grid {
             display: grid;
@@ -1019,12 +1042,6 @@ app.get('/admin', requireAdmin, async (req, res) => {
             font-size: 0.85rem;
             margin-left: 0.5rem;
         }
-        
-        @media (max-width: 768px) {
-            .form-grid {
-                grid-template-columns: 1fr;
-            }
-        }
     </style>
 </head>
 <body>
@@ -1043,7 +1060,7 @@ app.get('/admin', requireAdmin, async (req, res) => {
     <div class="container">
         <div class="card fade-in">
             <div class="card-header">
-                <h1>Dashboard Administrateur</h1>
+                <h1>🔧 Dashboard Administrateur</h1>
                 <p>Gestion complète de MY JANTES</p>
             </div>
         </div>
@@ -1072,13 +1089,13 @@ app.get('/admin', requireAdmin, async (req, res) => {
         <div class="card fade-in">
             <div class="card-body">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; flex-wrap: wrap; gap: 1rem;">
-                    <h2>Gestion des Factures</h2>
+                    <h2>💰 Gestion des Factures</h2>
                     <button class="btn-create" onclick="showInvoiceForm()">+ Créer Facture Manuelle</button>
                 </div>
                 
                 <!-- Formulaire de création de facture -->
                 <div id="invoiceForm" class="invoice-form">
-                    <h3 style="color: #28a745; margin-bottom: 1rem;">Nouvelle Facture Manuelle</h3>
+                    <h3 style="color: #28a745; margin-bottom: 1rem;">✨ Nouvelle Facture Manuelle</h3>
                     <form onsubmit="createManualInvoice(event)">
                         <div class="form-grid">
                             <div class="form-group">
@@ -1163,6 +1180,73 @@ app.get('/admin', requireAdmin, async (req, res) => {
                 </div>
             </div>
         </div>
+        
+        <!-- Gestion des Devis -->
+        <div class="card fade-in">
+            <div class="card-body">
+                <h2>📋 Gestion des Devis</h2>
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr><th>ID</th><th>Client</th><th>Email</th><th>Service</th><th>Statut</th><th>Date</th><th>Actions</th></tr>
+                        </thead>
+                        <tbody>
+                            ${devisResult.rows.map(row => `
+                                <tr>
+                                    <td>${row.id}</td>
+                                    <td>${row.customer_name}</td>
+                                    <td>${row.customer_email}</td>
+                                    <td>${row.service_type}</td>
+                                    <td><span class="status status-${row.status}">${row.status}</span></td>
+                                    <td>${new Date(row.created_at).toLocaleDateString()}</td>
+                                    <td>
+                                        <select onchange="updateStatus('devis', '${row.id}', this.value)">
+                                            <option value="en_attente" ${row.status === 'en_attente' ? 'selected' : ''}>En attente</option>
+                                            <option value="accepte" ${row.status === 'accepte' ? 'selected' : ''}>Accepté</option>
+                                            <option value="refuse" ${row.status === 'refuse' ? 'selected' : ''}>Refusé</option>
+                                            <option value="expire" ${row.status === 'expire' ? 'selected' : ''}>Expiré</option>
+                                        </select>
+                                    </td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Gestion des Réservations -->
+        <div class="card fade-in">
+            <div class="card-body">
+                <h2>📅 Gestion des Réservations</h2>
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr><th>ID</th><th>Client</th><th>Service</th><th>Date</th><th>Statut</th><th>Actions</th></tr>
+                        </thead>
+                        <tbody>
+                            ${reservationsResult.rows.map(row => `
+                                <tr>
+                                    <td>${row.id}</td>
+                                    <td>${row.customer_name}</td>
+                                    <td>${row.service_type}</td>
+                                    <td>${new Date(row.service_date).toLocaleDateString()}</td>
+                                    <td><span class="status status-${row.status}">${row.status}</span></td>
+                                    <td>
+                                        <select onchange="updateStatus('reservations', '${row.id}', this.value)">
+                                            <option value="confirmee" ${row.status === 'confirmee' ? 'selected' : ''}>Confirmée</option>
+                                            <option value="en_cours" ${row.status === 'en_cours' ? 'selected' : ''}>En cours</option>
+                                            <option value="terminee" ${row.status === 'terminee' ? 'selected' : ''}>Terminée</option>
+                                            <option value="annulee" ${row.status === 'annulee' ? 'selected' : ''}>Annulée</option>
+                                        </select>
+                                    </td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
     </div>
 
     <script>
@@ -1213,15 +1297,15 @@ app.get('/admin', requireAdmin, async (req, res) => {
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
-                    alert('Facture créée avec succès ! Numéro: ' + data.invoiceId);
+                    alert('✅ Facture créée avec succès !\\nNuméro: ' + data.invoiceId);
                     location.reload();
                 } else {
-                    alert('Erreur: ' + (data.message || 'Erreur inconnue'));
+                    alert('❌ Erreur: ' + (data.message || 'Erreur inconnue'));
                 }
             })
             .catch(error => {
                 console.error('Erreur:', error);
-                alert('Erreur lors de la création de la facture');
+                alert('❌ Erreur lors de la création de la facture');
             });
         }
         
@@ -1250,10 +1334,10 @@ app.get('/admin', requireAdmin, async (req, res) => {
                 .then(response => response.json())
                 .then(data => {
                     if (data.success) {
-                        alert('Email envoyé avec succès !');
+                        alert('✅ Email envoyé avec succès !');
                         location.reload();
                     } else {
-                        alert('Erreur: ' + (data.message || 'Erreur inconnue'));
+                        alert('❌ Erreur: ' + (data.message || 'Erreur inconnue'));
                     }
                 });
             }
@@ -1361,7 +1445,7 @@ app.put('/api/admin/:type/:id/status', requireAdmin, async (req, res) => {
   }
 });
 
-// Pages simplifiées pour devis et réservations
+// Pages de devis et réservations (simplifiées pour l'exemple)
 app.get('/devis', (req, res) => {
   res.send(`
 <!DOCTYPE html>
@@ -1370,7 +1454,7 @@ app.get('/devis', (req, res) => {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Demande de Devis - MY JANTES</title>
-    ${responsiveCSS}
+    ${commonCSS}
 </head>
 <body>
     <nav class="navbar">
@@ -1393,7 +1477,7 @@ app.get('/devis', (req, res) => {
             </div>
             <div class="card-body">
                 <p style="text-align: center; color: #666; font-size: 1.1rem;">
-                    Cette page sera développée prochainement<br>
+                    📋 Cette page sera développée prochainement<br>
                     En attendant, contactez-nous directement !
                 </p>
                 <div class="text-center" style="margin-top: 2rem;">
@@ -1417,7 +1501,7 @@ app.get('/reservations', (req, res) => {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Réservation - MY JANTES</title>
-    ${responsiveCSS}
+    ${commonCSS}
 </head>
 <body>
     <nav class="navbar">
@@ -1440,7 +1524,7 @@ app.get('/reservations', (req, res) => {
             </div>
             <div class="card-body">
                 <p style="text-align: center; color: #666; font-size: 1.1rem;">
-                    Cette page sera développée prochainement<br>
+                    📅 Cette page sera développée prochainement<br>
                     En attendant, contactez-nous directement !
                 </p>
                 <div class="text-center" style="margin-top: 2rem;">
@@ -1458,5 +1542,5 @@ app.get('/reservations', (req, res) => {
 
 // Démarrer le serveur
 app.listen(PORT, '0.0.0.0', () => {
-  console.log(`MY JANTES Fixed Server running on port ${PORT}`);
+  console.log(`✅ MY JANTES Complete Server running on port ${PORT}`);
 });
