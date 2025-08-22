@@ -215,14 +215,70 @@ app.get('/', (req, res) => {
             .navbar-content {
                 flex-direction: column;
                 gap: 1rem;
+                padding: 0 1rem;
             }
             
             .nav-menu {
                 flex-wrap: wrap;
                 justify-content: center;
+                gap: 0.8rem;
+            }
+            
+            .nav-menu a {
+                padding: 0.6rem 1rem;
+                font-size: 0.9rem;
+            }
+            
+            .hero {
+                padding: 3rem 1rem;
             }
             
             .hero h1 {
+                font-size: 2.2rem;
+            }
+            
+            .hero p {
+                font-size: 1.1rem;
+            }
+            
+            .services {
+                padding: 3rem 1rem;
+            }
+            
+            .services-grid {
+                grid-template-columns: 1fr;
+                gap: 1.5rem;
+            }
+            
+            .btn {
+                padding: 0.8rem 1.5rem;
+                margin: 0.3rem;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .logo {
+                font-size: 1.5rem;
+            }
+            
+            .nav-menu a {
+                padding: 0.5rem 0.8rem;
+                font-size: 0.85rem;
+            }
+            
+            .hero h1 {
+                font-size: 1.8rem;
+            }
+            
+            .hero p {
+                font-size: 1rem;
+            }
+            
+            .hero {
+                padding: 2rem 0.8rem;
+            }
+            
+            .services h2 {
                 font-size: 2rem;
             }
         }
