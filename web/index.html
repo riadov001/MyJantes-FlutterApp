@@ -1,423 +1,198 @@
 <!DOCTYPE html>
-<html lang="fr">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MY JANTES - Rénovation de Jantes Aluminium</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        
-        body {
-            font-family: 'Roboto', Arial, sans-serif;
-            line-height: 1.6;
-            color: #333;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-        }
-        
-        .header {
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(10px);
-            padding: 1rem 0;
-            position: fixed;
-            width: 100%;
-            top: 0;
-            z-index: 1000;
-            box-shadow: 0 2px 20px rgba(0,0,0,0.1);
-        }
-        
-        .nav-container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 0 20px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        
-        .logo {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-        }
-        
-        .logo img {
-            height: 50px;
-            width: auto;
-        }
-        
-        .logo h1 {
-            color: #DC2626;
-            font-weight: bold;
-            font-size: 1.8rem;
-            margin: 0;
-        }
-        
-        .nav-menu {
-            display: flex;
-            list-style: none;
-            gap: 30px;
-        }
-        
-        .nav-menu a {
-            text-decoration: none;
-            color: #333;
-            font-weight: 500;
-            transition: color 0.3s;
-        }
-        
-        .nav-menu a:hover {
-            color: #DC2626;
-        }
-        
-        .hamburger {
-            display: none;
-            flex-direction: column;
-            cursor: pointer;
-            gap: 3px;
-        }
-        
-        .hamburger span {
-            width: 25px;
-            height: 3px;
-            background: #333;
-            transition: 0.3s;
-        }
-        
-        .hero {
-            padding: 120px 20px 80px;
-            text-align: center;
-            color: white;
-        }
-        
-        .hero h2 {
-            font-size: 3rem;
-            margin-bottom: 20px;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
-        }
-        
-        .hero p {
-            font-size: 1.3rem;
-            margin-bottom: 30px;
-            opacity: 0.9;
-        }
-        
-        .cta-buttons {
-            display: flex;
-            gap: 20px;
-            justify-content: center;
-            flex-wrap: wrap;
-        }
-        
-        .btn {
-            padding: 15px 30px;
-            border: none;
-            border-radius: 50px;
-            font-size: 1rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s;
-            text-decoration: none;
-            display: inline-block;
-        }
-        
-        .btn-primary {
-            background: #DC2626;
-            color: white;
-        }
-        
-        .btn-primary:hover {
-            background: #B91C1C;
-            transform: translateY(-2px);
-            box-shadow: 0 10px 20px rgba(220, 38, 38, 0.3);
-        }
-        
-        .btn-secondary {
-            background: rgba(255, 255, 255, 0.2);
-            color: white;
-            border: 2px solid white;
-        }
-        
-        .btn-secondary:hover {
-            background: white;
-            color: #333;
-        }
-        
-        .services {
-            padding: 80px 20px;
-            background: white;
-        }
-        
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-        }
-        
-        .services h3 {
-            text-align: center;
-            font-size: 2.5rem;
-            margin-bottom: 50px;
-            color: #333;
-        }
-        
-        .services-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 30px;
-            margin-bottom: 50px;
-        }
-        
-        .service-card {
-            background: white;
-            padding: 30px;
-            border-radius: 15px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
-            transition: transform 0.3s;
-            border-left: 5px solid #DC2626;
-        }
-        
-        .service-card:hover {
-            transform: translateY(-5px);
-        }
-        
-        .service-card h4 {
-            color: #DC2626;
-            margin-bottom: 15px;
-            font-size: 1.3rem;
-        }
-        
-        .stats {
-            background: linear-gradient(135deg, #DC2626 0%, #B91C1C 100%);
-            padding: 60px 20px;
-            color: white;
-            text-align: center;
-        }
-        
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 30px;
-            max-width: 800px;
-            margin: 0 auto;
-        }
-        
-        .stat-item h4 {
-            font-size: 3rem;
-            margin-bottom: 10px;
-        }
-        
-        .contact {
-            padding: 80px 20px;
-            background: #f8fafc;
-            text-align: center;
-        }
-        
-        .contact h3 {
-            font-size: 2.5rem;
-            margin-bottom: 20px;
-            color: #333;
-        }
-        
-        .contact-info {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 30px;
-            margin: 40px 0;
-            max-width: 800px;
-            margin-left: auto;
-            margin-right: auto;
-        }
-        
-        .contact-item {
-            background: white;
-            padding: 30px;
-            border-radius: 15px;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-        }
-        
-        .footer {
-            background: #1f2937;
-            color: white;
-            padding: 40px 20px 20px;
-            text-align: center;
-        }
-        
-        @media (max-width: 768px) {
-            .nav-menu {
-                display: none;
-                position: fixed;
-                top: 70px;
-                left: 0;
-                width: 100%;
-                background: white;
-                flex-direction: column;
-                padding: 20px;
-                box-shadow: 0 2px 20px rgba(0,0,0,0.1);
-            }
-            
-            .nav-menu.active {
-                display: flex;
-            }
-            
-            .hamburger {
-                display: flex;
-            }
-            
-            .hero h2 {
-                font-size: 2rem;
-            }
-            
-            .hero p {
-                font-size: 1.1rem;
-            }
-            
-            .cta-buttons {
-                flex-direction: column;
-                align-items: center;
-            }
-            
-            .services-grid {
-                grid-template-columns: 1fr;
-            }
-            
-            .stats-grid {
-                grid-template-columns: repeat(2, 1fr);
-            }
-            
-            .logo h1 {
-                font-size: 1.4rem;
-            }
-        }
-    </style>
+  <!--
+    If you are serving your web app in a path other than the root, change the
+    href value below to reflect the base path you are serving from.
+
+    The path provided below has to start and end with a slash "/" in order for
+    it to work correctly.
+
+    For more details:
+    * https://developer.mozilla.org/en-US/docs/Web/HTML/Element/base
+
+    This is a placeholder for base href that will be replaced by the value of
+    the `--base-href` argument provided to `flutter build`.
+  -->
+  <base href="$FLUTTER_BASE_HREF">
+
+  <meta charset="UTF-8">
+  <meta content="IE=Edge" http-equiv="X-UA-Compatible">
+  <meta name="description" content="MY JANTES - Expert en rénovation de jantes aluminium à Liévin. Réservation en ligne, devis gratuit, personnalisation de jantes professionnelle.">
+
+  <!-- iOS meta tags & icons -->
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+  <meta name="apple-mobile-web-app-title" content="MY JANTES">
+  <link rel="apple-touch-icon" href="icons/Icon-192.png">
+
+  <!-- Favicon -->
+  <link rel="icon" type="image/png" href="favicon.png"/>
+
+  <title>MY JANTES - Expert en rénovation de jantes aluminium</title>
+  <link rel="manifest" href="manifest.json">
+
+  <style>
+    body {
+      font-family: 'Roboto', sans-serif;
+      margin: 0;
+      padding: 0;
+      background: linear-gradient(135deg, #000000 0%, #333333 100%);
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+    }
+    
+    .loading-container {
+      text-align: center;
+      padding: 2rem;
+    }
+    
+    .logo {
+      width: 120px;
+      height: 120px;
+      margin: 0 auto 2rem;
+      background: #DC2626;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 2rem;
+      font-weight: bold;
+      color: white;
+      animation: pulse 2s infinite;
+    }
+    
+    .title {
+      font-size: 2.5rem;
+      font-weight: 700;
+      margin-bottom: 0.5rem;
+      color: #DC2626;
+    }
+    
+    .subtitle {
+      font-size: 1.2rem;
+      margin-bottom: 2rem;
+      opacity: 0.9;
+    }
+    
+    .loading-bar {
+      width: 300px;
+      height: 4px;
+      background: rgba(255,255,255,0.2);
+      border-radius: 2px;
+      overflow: hidden;
+      margin: 0 auto;
+    }
+    
+    .loading-progress {
+      height: 100%;
+      background: linear-gradient(90deg, #DC2626, #ff6b6b);
+      border-radius: 2px;
+      animation: loading 1.5s ease-in-out infinite;
+    }
+    
+    @keyframes pulse {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.05); }
+    }
+    
+    @keyframes loading {
+      0% { width: 0%; }
+      50% { width: 70%; }
+      100% { width: 100%; }
+    }
+    
+    .info {
+      margin-top: 2rem;
+      font-size: 0.9rem;
+      opacity: 0.7;
+    }
+  </style>
 </head>
 <body>
-    <header class="header">
-        <nav class="nav-container">
-            <div class="logo">
-                <img src="/myjantes_official_logo.png" alt="MY JANTES Logo" onerror="this.style.display='none'">
-                <h1>MY JANTES</h1>
-            </div>
-            <ul class="nav-menu" id="nav-menu">
-                <li><a href="#accueil">Accueil</a></li>
-                <li><a href="#services">Services</a></li>
-                <li><a href="#contact">Contact</a></li>
-                <li><a href="/register">Inscription</a></li>
-                <li><a href="/login">Connexion</a></li>
-            </ul>
-            <div class="hamburger" id="hamburger">
-                <span></span>
-                <span></span>
-                <span></span>
-            </div>
-        </nav>
-    </header>
+  <div class="loading-container">
+    <div class="logo">MJ</div>
+    <div class="title">MY JANTES</div>
+    <div class="subtitle">Expert en rénovation de jantes aluminium</div>
+    <div class="loading-bar">
+      <div class="loading-progress"></div>
+    </div>
+    <div class="info">
+      📍 46 rue de la Convention, 62800 Liévin<br>
+      ☎️ 03.21.40.80.53
+    </div>
+  </div>
 
-    <section class="hero" id="accueil">
-        <div class="container">
-            <h2>Rénovation de Jantes Aluminium</h2>
-            <p>Redonnez éclat et beauté à vos jantes avec nos services professionnels à Liévin</p>
-            <div class="cta-buttons">
-                <a href="/register" class="btn btn-primary">Demander un Devis</a>
-                <a href="#contact" class="btn btn-secondary">Nous Contacter</a>
-            </div>
-        </div>
-    </section>
+  <!-- This script installs service_worker.js to provide PWA functionality to
+       application. For more information, see:
+       https://developers.google.com/web/fundamentals/primers/service-workers -->
+  <script>
+    var serviceWorkerVersion = null;
+    var scriptLoaded = false;
+    
+    function loadMainDartJs() {
+      if (scriptLoaded) {
+        return;
+      }
+      scriptLoaded = true;
+      var scriptTag = document.createElement('script');
+      scriptTag.src = 'main.dart.js';
+      scriptTag.type = 'application/javascript';
+      document.body.append(scriptTag);
+    }
 
-    <section class="services" id="services">
-        <div class="container">
-            <h3>Nos Services</h3>
-            <div class="services-grid">
-                <div class="service-card">
-                    <h4>Décapage Professionnel</h4>
-                    <p>Décapage chimique et mécanique pour éliminer l'oxydation et les rayures profondes. Tarif : 60€/jante</p>
-                </div>
-                <div class="service-card">
-                    <h4>Rénovation Standard</h4>
-                    <p>Ponçage, apprêt, peinture et vernis pour un résultat comme neuf. Tarif : 70€/jante</p>
-                </div>
-                <div class="service-card">
-                    <h4>Rénovation Premium</h4>
-                    <p>Rénovation complète avec finition haut de gamme. Tarif : 90€/jante</p>
-                </div>
-                <div class="service-card">
-                    <h4>Personnalisation</h4>
-                    <p>Large choix de couleurs et finitions pour personnaliser vos jantes. Tarif : 120€/jante</p>
-                </div>
-                <div class="service-card">
-                    <h4>Dévoilage Expert</h4>
-                    <p>Remise en forme professionnelle des jantes déformées. Tarif : 40€/jante</p>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <section class="stats">
-        <div class="container">
-            <div class="stats-grid">
-                <div class="stat-item">
-                    <h4>500+</h4>
-                    <p>Jantes Rénovées</p>
-                </div>
-                <div class="stat-item">
-                    <h4>98%</h4>
-                    <p>Satisfaction Client</p>
-                </div>
-                <div class="stat-item">
-                    <h4>15+</h4>
-                    <p>Années d'Expérience</p>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <section class="contact" id="contact">
-        <div class="container">
-            <h3>Contactez-nous</h3>
-            <div class="contact-info">
-                <div class="contact-item">
-                    <h4>📍 Adresse</h4>
-                    <p>MY JANTES<br>Liévin, France</p>
-                </div>
-                <div class="contact-item">
-                    <h4>📞 Téléphone</h4>
-                    <p>Contactez-nous via le formulaire</p>
-                </div>
-                <div class="contact-item">
-                    <h4>✉️ Email</h4>
-                    <p>contact@myjantes.fr</p>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <footer class="footer">
-        <div class="container">
-            <p>&copy; 2025 MY JANTES. Tous droits réservés.</p>
-            <p>Spécialiste en rénovation de jantes aluminium à Liévin</p>
-        </div>
-    </footer>
-
-    <script>
-        // Menu hamburger mobile
-        const hamburger = document.getElementById('hamburger');
-        const navMenu = document.getElementById('nav-menu');
-        
-        if (hamburger && navMenu) {
-            hamburger.addEventListener('click', () => {
-                navMenu.classList.toggle('active');
-            });
-            
-            // Fermer le menu lors du clic sur un lien
-            navMenu.addEventListener('click', (e) => {
-                if (e.target.tagName === 'A') {
-                    navMenu.classList.remove('active');
+    if ('serviceWorker' in navigator) {
+      // Service workers are supported. Use them.
+      window.addEventListener('load', function () {
+        // Wait for registration to finish before dropping the <script> tag.
+        // Otherwise, the browser will load the script multiple times,
+        // potentially different versions.
+        var serviceWorkerUrl = 'flutter_service_worker.js?v=' + serviceWorkerVersion;
+        navigator.serviceWorker.register(serviceWorkerUrl)
+          .then((reg) => {
+            function waitForActivation(serviceWorker) {
+              serviceWorker.addEventListener('statechange', () => {
+                if (serviceWorker.state == 'activated') {
+                  console.log('Installed new service worker.');
+                  loadMainDartJs();
                 }
-            });
-        }
-    </script>
+              });
+            }
+            if (!reg.active && (reg.installing || reg.waiting)) {
+              // No active web worker and we have installed or are installing
+              // one for the first time. Simply wait for it to activate.
+              waitForActivation(reg.installing || reg.waiting);
+            } else if (!reg.active.scriptURL.endsWith(serviceWorkerVersion)) {
+              // When the app updates the serviceWorkerVersion changes, so we
+              // need to ask the service worker to update.
+              console.log('New service worker available.');
+              reg.update();
+              waitForActivation(reg.installing);
+            } else {
+              // Existing service worker is still good.
+              console.log('Loading app from service worker.');
+              loadMainDartJs();
+            }
+          });
+
+        // If service worker doesn't succeed in a reasonable amount of time,
+        // fallback to plaint <script> tag.
+        setTimeout(() => {
+          if (!scriptLoaded) {
+            console.warn(
+              'Failed to load app from service worker. Falling back to plain <script> tag.',
+            );
+            loadMainDartJs();
+          }
+        }, 4000);
+      });
+    } else {
+      // Service workers not supported. Just drop the <script> tag.
+      loadMainDartJs();
+    }
+  </script>
 </body>
 </html>
