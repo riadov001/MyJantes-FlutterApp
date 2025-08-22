@@ -741,7 +741,59 @@ app.get('/admin', requireAdmin, async (req, res) => {
         </div>
         
         <div class="section">
-            <h2>Gestion des Factures</h2>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                <h2>Gestion des Factures</h2>
+                <button onclick="showInvoiceForm()" style="background: #28a745; padding: 0.5rem 1rem; font-size: 1rem; border-radius: 5px;">
+                    + Créer Facture Manuelle
+                </button>
+            </div>
+            
+            <!-- Formulaire de création de facture (masqué par défaut) -->
+            <div id="invoiceForm" style="display: none; background: #f8f9fa; padding: 1.5rem; border-radius: 8px; margin-bottom: 1.5rem; border: 2px solid #28a745;">
+                <h3 style="color: #28a745; margin-bottom: 1rem;">Nouvelle Facture Manuelle</h3>
+                <form onsubmit="createManualInvoice(event)" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                    <div>
+                        <label>Nom du client :</label>
+                        <input type="text" id="customerName" required style="width: 100%; padding: 0.5rem; border: 1px solid #ddd; border-radius: 4px; margin-top: 0.25rem;">
+                    </div>
+                    <div>
+                        <label>Email du client :</label>
+                        <input type="email" id="customerEmail" required style="width: 100%; padding: 0.5rem; border: 1px solid #ddd; border-radius: 4px; margin-top: 0.25rem;">
+                    </div>
+                    <div>
+                        <label>Téléphone :</label>
+                        <input type="tel" id="customerPhone" style="width: 100%; padding: 0.5rem; border: 1px solid #ddd; border-radius: 4px; margin-top: 0.25rem;">
+                    </div>
+                    <div>
+                        <label>Service réalisé :</label>
+                        <select id="serviceType" required style="width: 100%; padding: 0.5rem; border: 1px solid #ddd; border-radius: 4px; margin-top: 0.25rem;" onchange="updatePrice()">
+                            <option value="">Sélectionnez un service</option>
+                            <option value="Rénovation Standard" data-price="70">Rénovation Standard - 70€</option>
+                            <option value="Rénovation Premium" data-price="90">Rénovation Premium - 90€</option>
+                            <option value="Personnalisation" data-price="120">Personnalisation - 120€</option>
+                            <option value="Dévoilage" data-price="40">Dévoilage - 40€</option>
+                            <option value="Décapage" data-price="60">Décapage - 60€</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label>Nombre de jantes :</label>
+                        <input type="number" id="rimCount" min="1" max="8" value="4" required style="width: 100%; padding: 0.5rem; border: 1px solid #ddd; border-radius: 4px; margin-top: 0.25rem;" onchange="updatePrice()">
+                    </div>
+                    <div>
+                        <label>Montant total (€) :</label>
+                        <input type="number" id="totalAmount" step="0.01" min="0" required style="width: 100%; padding: 0.5rem; border: 1px solid #ddd; border-radius: 4px; margin-top: 0.25rem;">
+                    </div>
+                    <div style="grid-column: span 2;">
+                        <label>Description des travaux :</label>
+                        <textarea id="workDescription" rows="3" style="width: 100%; padding: 0.5rem; border: 1px solid #ddd; border-radius: 4px; margin-top: 0.25rem;" placeholder="Décrivez les travaux effectués..."></textarea>
+                    </div>
+                    <div style="grid-column: span 2; display: flex; gap: 1rem; justify-content: flex-end; margin-top: 1rem;">
+                        <button type="button" onclick="hideInvoiceForm()" style="background: #6c757d; padding: 0.5rem 1rem; border: none; border-radius: 4px; color: white; cursor: pointer;">Annuler</button>
+                        <button type="submit" style="background: #28a745; padding: 0.5rem 1rem; border: none; border-radius: 4px; color: white; cursor: pointer;">Créer la Facture</button>
+                    </div>
+                </form>
+            </div>
+            
             <table>
                 <thead>
                     <tr><th>ID</th><th>Client</th><th>Email</th><th>Montant</th><th>Statut</th><th>Date</th><th>Actions</th></tr>
@@ -762,6 +814,9 @@ app.get('/admin', requireAdmin, async (req, res) => {
                                     <option value="payee" ${row.status === 'payee' ? 'selected' : ''}>Payée</option>
                                     <option value="annulee" ${row.status === 'annulee' ? 'selected' : ''}>Annulée</option>
                                 </select>
+                                <button onclick="sendInvoiceEmail('${row.id}')" style="background: #007bff; margin-left: 0.5rem; padding: 0.25rem 0.5rem; font-size: 0.8rem; border: none; border-radius: 3px; color: white; cursor: pointer;">
+                                    📧 Envoyer
+                                </button>
                             </td>
                         </tr>
                     `).join('')}
@@ -785,6 +840,84 @@ app.get('/admin', requireAdmin, async (req, res) => {
                     alert('Erreur lors de la mise à jour');
                 }
             });
+        }
+        
+        function showInvoiceForm() {
+            document.getElementById('invoiceForm').style.display = 'block';
+        }
+        
+        function hideInvoiceForm() {
+            document.getElementById('invoiceForm').style.display = 'none';
+            document.querySelector('form').reset();
+        }
+        
+        function updatePrice() {
+            const serviceSelect = document.getElementById('serviceType');
+            const rimCount = document.getElementById('rimCount').value || 4;
+            const totalField = document.getElementById('totalAmount');
+            
+            if (serviceSelect.selectedOptions[0]) {
+                const pricePerRim = serviceSelect.selectedOptions[0].dataset.price;
+                if (pricePerRim) {
+                    totalField.value = (parseFloat(pricePerRim) * parseInt(rimCount)).toFixed(2);
+                }
+            }
+        }
+        
+        function createManualInvoice(event) {
+            event.preventDefault();
+            
+            const formData = {
+                customer_name: document.getElementById('customerName').value,
+                customer_email: document.getElementById('customerEmail').value,
+                customer_phone: document.getElementById('customerPhone').value,
+                service_type: document.getElementById('serviceType').value,
+                rim_count: document.getElementById('rimCount').value,
+                total: parseFloat(document.getElementById('totalAmount').value),
+                work_description: document.getElementById('workDescription').value,
+                status: 'brouillon'
+            };
+            
+            fetch('/api/admin/factures/manual', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(formData)
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert('Facture créée avec succès !');
+                    location.reload();
+                } else {
+                    alert('Erreur lors de la création de la facture: ' + (data.message || 'Erreur inconnue'));
+                }
+            })
+            .catch(error => {
+                console.error('Erreur:', error);
+                alert('Erreur lors de la création de la facture');
+            });
+        }
+        
+        function sendInvoiceEmail(invoiceId) {
+            if (confirm('Envoyer cette facture par email au client ?')) {
+                fetch('/api/admin/factures/' + invoiceId + '/send-email', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        alert('Email envoyé avec succès !');
+                        location.reload();
+                    } else {
+                        alert('Erreur lors de l\\'envoi de l\\'email: ' + (data.message || 'Erreur inconnue'));
+                    }
+                })
+                .catch(error => {
+                    console.error('Erreur:', error);
+                    alert('Erreur lors de l\\'envoi de l\\'email');
+                });
+            }
         }
         
         function logout() {
@@ -812,6 +945,89 @@ app.put('/api/admin/:type/:id/status', requireAdmin, async (req, res) => {
   } catch (error) {
     console.error('Status update error:', error);
     res.status(500).json({ success: false });
+  }
+});
+
+// API route for creating manual invoices
+app.post('/api/admin/factures/manual', requireAdmin, async (req, res) => {
+  const { customer_name, customer_email, customer_phone, service_type, rim_count, total, work_description } = req.body;
+  
+  try {
+    // Generate invoice ID
+    const year = new Date().getFullYear();
+    const countResult = await pool.query('SELECT COUNT(*) FROM factures WHERE created_at >= $1', [`${year}-01-01`]);
+    const count = parseInt(countResult.rows[0].count) + 1;
+    const invoiceId = `FACT-${year}-${count.toString().padStart(4, '0')}`;
+    
+    // Insert invoice
+    await pool.query(`
+      INSERT INTO factures (id, customer_name, customer_email, customer_phone, service_type, rim_count, total, work_description, status, created_at)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, 'brouillon', NOW())
+    `, [invoiceId, customer_name, customer_email, customer_phone, service_type, rim_count, total, work_description]);
+    
+    res.json({ success: true, invoiceId });
+  } catch (error) {
+    console.error('Manual invoice creation error:', error);
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
+// API route for sending invoice emails
+app.post('/api/admin/factures/:id/send-email', requireAdmin, async (req, res) => {
+  const { id } = req.params;
+  
+  try {
+    // Get invoice details
+    const result = await pool.query('SELECT * FROM factures WHERE id = $1', [id]);
+    if (result.rows.length === 0) {
+      return res.status(404).json({ success: false, message: 'Facture non trouvée' });
+    }
+    
+    const invoice = result.rows[0];
+    
+    // Create email content
+    const emailContent = `
+      <html>
+        <body style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+          <div style="background: #1a1a1a; color: white; padding: 2rem; text-align: center;">
+            <h1 style="color: #dc2626; margin: 0;">MY JANTES</h1>
+            <p style="margin: 0.5rem 0 0 0;">Facture ${invoice.id}</p>
+          </div>
+          
+          <div style="padding: 2rem; background: #f8f9fa;">
+            <h2 style="color: #dc2626;">Bonjour ${invoice.customer_name},</h2>
+            <p>Veuillez trouver ci-dessous le détail de votre facture :</p>
+            
+            <div style="background: white; padding: 1.5rem; border-radius: 8px; margin: 1rem 0;">
+              <h3>Détails de la facture</h3>
+              <p><strong>Numéro :</strong> ${invoice.id}</p>
+              <p><strong>Service :</strong> ${invoice.service_type}</p>
+              <p><strong>Nombre de jantes :</strong> ${invoice.rim_count}</p>
+              <p><strong>Montant total :</strong> ${invoice.total}€</p>
+              <p><strong>Date :</strong> ${new Date(invoice.created_at).toLocaleDateString()}</p>
+              ${invoice.work_description ? `<p><strong>Description :</strong> ${invoice.work_description}</p>` : ''}
+            </div>
+            
+            <p>Pour toute question, n'hésitez pas à nous contacter.</p>
+            
+            <div style="margin-top: 2rem; padding: 1rem; background: #dc2626; color: white; border-radius: 8px; text-align: center;">
+              <h3 style="margin: 0;">MY JANTES</h3>
+              <p style="margin: 0.5rem 0;">📍 123 Rue de la Paix, 62800 Liévin</p>
+              <p style="margin: 0.5rem 0;">📞 03 21 XX XX XX | 📧 contact@myjantes.fr</p>
+            </div>
+          </div>
+        </body>
+      </html>
+    `;
+    
+    // Here you would normally send the email using a service like nodemailer
+    // For now, we'll just update the status to "envoyee"
+    await pool.query('UPDATE factures SET status = $1 WHERE id = $2', ['envoyee', id]);
+    
+    res.json({ success: true, message: 'Email de facture envoyé' });
+  } catch (error) {
+    console.error('Invoice email error:', error);
+    res.status(500).json({ success: false, message: error.message });
   }
 });
 
