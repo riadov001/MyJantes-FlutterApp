@@ -108,9 +108,48 @@ export const reservations = pgTable("reservations", {
   serviceType: varchar("service_type").notNull(),
   vehicleInfo: text("vehicle_info"),
   specialInstructions: text("special_instructions"),
+  photos: text("photos").array(), // Photos for reservation
   status: reservationStatusEnum("status").default('confirmee').notNull(),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Work Sessions table for tracking time spent on vehicles
+export const workSessions = pgTable("work_sessions", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  reservationId: varchar("reservation_id").references(() => reservations.id),
+  factureId: varchar("facture_id").references(() => factures.id),
+  startTime: timestamp("start_time").notNull(),
+  endTime: timestamp("end_time"),
+  description: text("description"),
+  beforePhotos: text("before_photos").array(),
+  afterPhotos: text("after_photos").array(),
+  totalMinutes: integer("total_minutes"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Notifications table for tracking sent notifications
+export const notifications = pgTable("notifications", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").references(() => users.id),
+  type: varchar("type").notNull(), // 'email', 'sms', 'push'
+  subject: varchar("subject"),
+  message: text("message").notNull(),
+  status: varchar("status").default('pending'), // 'pending', 'sent', 'failed', 'delivered'
+  sentAt: timestamp("sent_at"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// Consent logs for GDPR compliance
+export const consentLogs = pgTable("consent_logs", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").references(() => users.id),
+  consentType: varchar("consent_type").notNull(), // 'sms', 'email', 'data_processing'
+  granted: boolean("granted").notNull(),
+  ipAddress: varchar("ip_address"),
+  userAgent: text("user_agent"),
+  createdAt: timestamp("created_at").defaultNow(),
 });
 
 // Relations
@@ -118,6 +157,8 @@ export const usersRelations = relations(users, ({ many }) => ({
   devis: many(devis),
   factures: many(factures),
   reservations: many(reservations),
+  notifications: many(notifications),
+  consentLogs: many(consentLogs),
 }));
 
 export const devisRelations = relations(devis, ({ one, many }) => ({
@@ -129,7 +170,7 @@ export const devisRelations = relations(devis, ({ one, many }) => ({
   reservations: many(reservations),
 }));
 
-export const facturesRelations = relations(factures, ({ one }) => ({
+export const facturesRelations = relations(factures, ({ one, many }) => ({
   user: one(users, {
     fields: [factures.userId],
     references: [users.id],
@@ -138,9 +179,10 @@ export const facturesRelations = relations(factures, ({ one }) => ({
     fields: [factures.devisId],
     references: [devis.id],
   }),
+  workSessions: many(workSessions),
 }));
 
-export const reservationsRelations = relations(reservations, ({ one }) => ({
+export const reservationsRelations = relations(reservations, ({ one, many }) => ({
   user: one(users, {
     fields: [reservations.userId],
     references: [users.id],
@@ -149,6 +191,32 @@ export const reservationsRelations = relations(reservations, ({ one }) => ({
     fields: [reservations.devisId],
     references: [devis.id],
   }),
+  workSessions: many(workSessions),
+}));
+
+export const workSessionsRelations = relations(workSessions, ({ one }) => ({
+  reservation: one(reservations, {
+    fields: [workSessions.reservationId],
+    references: [reservations.id],
+  }),
+  facture: one(factures, {
+    fields: [workSessions.factureId],
+    references: [factures.id],
+  }),
+}));
+
+export const notificationsRelations = relations(notifications, ({ one }) => ({
+  user: one(users, {
+    fields: [notifications.userId],
+    references: [users.id],
+  }),
+}));
+
+export const consentLogsRelations = relations(consentLogs, ({ one }) => ({
+  user: one(users, {
+    fields: [consentLogs.userId],
+    references: [users.id],
+  }),
 }));
 
 // Insert schemas
@@ -156,6 +224,8 @@ export const insertUserSchema = createInsertSchema(users).omit({
   id: true,
   createdAt: true,
   updatedAt: true,
+}).extend({
+  confirmPassword: z.string().optional(),
 });
 
 export const insertDevisSchema = createInsertSchema(devis).omit({
@@ -176,15 +246,34 @@ export const insertReservationSchema = createInsertSchema(reservations).omit({
   updatedAt: true,
 });
 
+export const insertWorkSessionSchema = createInsertSchema(workSessions).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertNotificationSchema = createInsertSchema(notifications).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertConsentLogSchema = createInsertSchema(consentLogs).omit({
+  id: true,
+  createdAt: true,
+});
+
 // Update schemas
+export const updateUserSchema = insertUserSchema.partial();
 export const updateDevisSchema = insertDevisSchema.partial();
 export const updateFactureSchema = insertFactureSchema.partial();
 export const updateReservationSchema = insertReservationSchema.partial();
+export const updateWorkSessionSchema = insertWorkSessionSchema.partial();
 
 // Types
 export type User = typeof users.$inferSelect;
 export type UpsertUser = typeof users.$inferInsert;
 export type InsertUser = z.infer<typeof insertUserSchema>;
+export type UpdateUser = z.infer<typeof updateUserSchema>;
 
 export type Devis = typeof devis.$inferSelect;
 export type InsertDevis = z.infer<typeof insertDevisSchema>;
@@ -197,3 +286,13 @@ export type UpdateFacture = z.infer<typeof updateFactureSchema>;
 export type Reservation = typeof reservations.$inferSelect;
 export type InsertReservation = z.infer<typeof insertReservationSchema>;
 export type UpdateReservation = z.infer<typeof updateReservationSchema>;
+
+export type WorkSession = typeof workSessions.$inferSelect;
+export type InsertWorkSession = z.infer<typeof insertWorkSessionSchema>;
+export type UpdateWorkSession = z.infer<typeof updateWorkSessionSchema>;
+
+export type Notification = typeof notifications.$inferSelect;
+export type InsertNotification = z.infer<typeof insertNotificationSchema>;
+
+export type ConsentLog = typeof consentLogs.$inferSelect;
+export type InsertConsentLog = z.infer<typeof insertConsentLogSchema>;
